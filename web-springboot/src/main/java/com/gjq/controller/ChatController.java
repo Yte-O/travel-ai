@@ -17,9 +17,9 @@ import java.util.Map;
 /**
  * 聊天控制器
  */
-@RestController
-@RequestMapping("/chat")
-@Tag(name = "聊天API", description = "聊天相关接口")
+@RestController//让这个类成为 API 接口控制器，所有方法返回 JSON 给前端
+@RequestMapping("/chat")//令所有接口前缀都是 /chat
+@Tag(name = "聊天API", description = "聊天相关接口")//Swagger 接口文档分组，方便在文档里看到 “聊天 API” 分类
 public class ChatController {
     
     @Autowired

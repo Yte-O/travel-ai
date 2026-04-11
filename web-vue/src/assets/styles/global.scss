@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+:root {
+	--font-main: 'Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+	--bg-0: #f5f8ef;
+	--bg-1: #e9f2ff;
+	--bg-2: #ffe9ce;
+	--ink-1: #1f2a1f;
+	--ink-2: #4d5b4d;
+	--line-soft: rgba(23, 35, 23, 0.08);
+	--brand: #156f5f;
+	--brand-2: #e66127;
+	--card: rgba(255, 255, 255, 0.8);
+	--shadow-lg: 0 12px 48px rgba(25, 44, 25, 0.12);
+	--radius-xl: 24px;
+	--radius-lg: 16px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+	width: 100%;
+	min-height: 100%;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	font-family: var(--font-main);
+	color: var(--ink-1);
+	background:
+		radial-gradient(circle at 6% 8%, var(--bg-2) 0%, transparent 46%),
+		radial-gradient(circle at 85% 12%, #d8fff4 0%, transparent 42%),
+		radial-gradient(circle at 78% 86%, #dce8ff 0%, transparent 42%),
+		linear-gradient(170deg, var(--bg-0) 0%, var(--bg-1) 100%);
+	background-attachment: fixed;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background-image: radial-gradient(rgba(22, 27, 22, 0.05) 0.4px, transparent 0.4px);
+	background-size: 4px 4px;
+	opacity: 0.32;
+	z-index: -1;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.glass-card {
+	background: var(--card);
+	backdrop-filter: blur(8px);
+	border: 1px solid var(--line-soft);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-lg);
+}
+
+.section-enter {
+	animation: sectionUp 0.55s ease both;
+}
+
+@keyframes sectionUp {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Global component restyle: apply to every page */
+.el-card {
+	border-radius: 18px !important;
+	border: 1px solid rgba(24, 37, 24, 0.08) !important;
+	background: rgba(255, 255, 255, 0.72) !important;
+	box-shadow: 0 8px 28px rgba(20, 34, 21, 0.08) !important;
+}
+
+.el-card__header {
+	border-bottom-color: rgba(26, 41, 30, 0.08) !important;
+}
+
+.el-button {
+	border-radius: 12px !important;
+	font-weight: 600 !important;
+}
+
+.el-button--primary {
+	--el-button-bg-color: #145f52 !important;
+	--el-button-border-color: #145f52 !important;
+	--el-button-hover-bg-color: #1a7262 !important;
+	--el-button-hover-border-color: #1a7262 !important;
+}
+
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper {
+	border-radius: 12px !important;
+	box-shadow: 0 0 0 1px rgba(26, 43, 30, 0.12) inset !important;
+	background: rgba(255, 255, 255, 0.86) !important;
+}
+
+.el-dialog,
+.el-drawer {
+	border-radius: 18px !important;
+	background: rgba(252, 255, 252, 0.95) !important;
+	border: 1px solid rgba(25, 39, 25, 0.08);
+}
+
+.el-table {
+	--el-table-border-color: rgba(26, 41, 31, 0.08) !important;
+	--el-table-header-bg-color: rgba(228, 245, 240, 0.72) !important;
+	--el-table-row-hover-bg-color: rgba(225, 242, 236, 0.52) !important;
+	border-radius: 14px;
+	overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+	font-weight: 700 !important;
+	color: #2b4032;
+}
+
+.el-pagination {
+	--el-pagination-button-bg-color: rgba(255, 255, 255, 0.76);
+	--el-pagination-button-color: #36513f;
+}
+
+.el-tag {
+	border-radius: 999px !important;
+}
+
+.el-tabs__item.is-active {
+	color: #145f52 !important;
+	font-weight: 700;
+}
+
+.el-tabs__active-bar {
+	background-color: #145f52 !important;
+}
+
+.el-breadcrumb__item:last-child .el-breadcrumb__inner {
+	color: #2f4b39 !important;
+	font-weight: 600;
+}

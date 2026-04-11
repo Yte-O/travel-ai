@@ -1,109 +1,40 @@
-<!-- 用户端布局组件 - B站风格 -->
 <template>
   <div class="user-layout">
-    <!-- 顶部导航栏 -->
-    <header class="main-header">
-      <div class="header-container">
-        <!-- 左侧导航链接 -->
-        <div class="header-left">
-          <div class="logo">
-            <img src="@/assets/images/logo.png" alt="logo" />
-            <span>Travel AI 推荐</span>
-          </div>
-          <nav class="primary-nav">
-            <router-link to="/user/home" class="nav-item">首页</router-link>
-            <router-link to="/user/items" class="nav-item">景点</router-link>
-            <router-link to="/user/chat" class="nav-item">AI聊天</router-link>
-          </nav>
-        </div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
 
-        <!-- 中间搜索框 -->
-        <div class="header-center">
-          <div class="search-box">
-            <el-input
-              v-model="searchText"
-              placeholder="搜索景点..."
-              @keyup.enter="handleSearch"
-              clearable
-            >
-              <template #prefix>
-                <el-dropdown trigger="click" @command="handleSearchModeChange">
-                  <div class="search-mode">
-                    {{ searchMode === 'title' ? '标题' : '标签' }}
-                    <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-                  </div>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="title">标题</el-dropdown-item>
-                      <el-dropdown-item command="tag">标签</el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </template>
-              <template #suffix>
-                <el-icon class="search-icon" @click="handleSearch"><Search /></el-icon>
-                
-                <el-popover
-                  placement="bottom"
-                  :width="320"
-                  trigger="click"
-                  v-model:visible="showAdvancedSearch"
-                  popper-class="advanced-search-popover"
-                  :teleported="true"
-                  :stop-popper-mouse-event="false"
-                >
-                  <template #reference>
-                    <el-icon class="advanced-search-icon" @click.stop><Setting /></el-icon>
-                  </template>
-                  <div class="advanced-search-panel">
-                    <h4>高级搜索</h4>
-                    <el-form :model="advancedSearchForm" label-position="top">
-                      <el-form-item label="景点名称">
-                        <el-input v-model="advancedSearchForm.title" placeholder="输入景点名称"></el-input>
-                      </el-form-item>
-                      <el-form-item label="标签">
-                        <el-input v-model="advancedSearchForm.tag" placeholder="输入标签关键词"></el-input>
-                      </el-form-item>
-                      <el-form-item label="分类">
-                        <el-select v-model="advancedSearchForm.categoryId" placeholder="选择分类" clearable style="width: 100%">
-                          <el-option 
-                            v-for="category in popularCategories" 
-                            :key="category.id" 
-                            :label="category.name" 
-                            :value="category.id"
-                          />
-                        </el-select>
-                      </el-form-item>
-                      <div class="advanced-search-actions">
-                        <el-button type="primary" @click="handleAdvancedSearch">搜索</el-button>
-                        <el-button @click="resetAdvancedSearch">重置</el-button>
-                      </div>
-                    </el-form>
-                  </div>
-                </el-popover>
-              </template>
-            </el-input>
+    <header class="main-header glass-card">
+      <div class="header-top">
+        <div class="brand-block">
+          <img src="@/assets/images/logo.png" alt="logo" />
+          <div class="brand-meta">
+            <strong>TRAVEL AI</strong>
+            <span>探索 · 洞察 · 推荐</span>
           </div>
         </div>
 
-        <!-- 右侧用户功能区 -->
-        <div class="header-right">
+        <nav class="primary-nav">
+          <router-link to="/user/home" class="nav-pill">首页</router-link>
+          <router-link to="/user/items" class="nav-pill">景点</router-link>
+          <router-link to="/user/chat" class="nav-pill">AI行程</router-link>
+        </nav>
+
+        <div class="right-tools">
           <AlgoHealthCheck class="health-check" />
-          <div class="user-actions">
-            <router-link to="/user/favorites" class="action-item">
-              <el-icon><Star /></el-icon>
-              <span>我的收藏</span>
-            </router-link>
-            <router-link to="/user/history/browsing" class="action-item">
-              <el-icon><View /></el-icon>
-              <span>历史记录</span>
-            </router-link>
-          </div>
+          <router-link to="/user/favorites" class="quick-link">
+            <el-icon><Star /></el-icon>
+            收藏
+          </router-link>
+          <router-link to="/user/history/browsing" class="quick-link">
+            <el-icon><View /></el-icon>
+            足迹
+          </router-link>
           <el-dropdown @command="handleCommand" class="user-dropdown">
-            <div class="user-info">
-              <el-avatar :size="32" :src="userInfo?.avatarUrl || defaultAvatar">
+            <div class="user-chip">
+              <el-avatar :size="34" :src="userInfo?.avatarUrl || defaultAvatar">
                 {{ userInfo?.username?.substring(0, 1) }}
               </el-avatar>
+              <span>{{ userInfo?.realName || userInfo?.username || '游客' }}</span>
             </div>
             <template #dropdown>
               <el-dropdown-menu>
@@ -116,56 +47,106 @@
           </el-dropdown>
         </div>
       </div>
-    </header>
 
-    <!-- 分类导航菜单 -->
-    <nav class="category-nav">
-      <div class="category-nav-container">
-        <div class="primary-categories">
-          <router-link to="/user/categories" class="category-item">
-            <el-icon><Menu /></el-icon>
-            <span>全部分类</span>
-          </router-link>
-          <!-- 动态分类项 -->
-          <template v-for="category in popularCategories" :key="category.id">
-            <router-link :to="`/user/category/${category.id}`" class="category-item">
-              <el-image
-                v-if="category.iconUrl"
-                :src="category.iconUrl"
-                class="category-icon"
-              />
-              <el-icon v-else><Grid /></el-icon>
-              <span>{{ category.name }}</span>
-            </router-link>
-          </template>
+      <div class="search-row">
+        <div class="search-box">
+          <el-input
+            v-model="searchText"
+            placeholder="输入目的地、主题或标签，开始你的旅行灵感..."
+            @keyup.enter="handleSearch"
+            clearable
+            size="large"
+          >
+            <template #prefix>
+              <el-dropdown trigger="click" @command="handleSearchModeChange">
+                <div class="search-mode">
+                  {{ searchMode === 'title' ? '按标题' : '按标签' }}
+                  <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                </div>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="title">按标题</el-dropdown-item>
+                    <el-dropdown-item command="tag">按标签</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+            <template #suffix>
+              <el-icon class="search-icon" @click="handleSearch"><Search /></el-icon>
+              <el-popover
+                placement="bottom"
+                :width="340"
+                trigger="click"
+                v-model:visible="showAdvancedSearch"
+                popper-class="advanced-search-popover"
+                :teleported="true"
+                :stop-popper-mouse-event="false"
+              >
+                <template #reference>
+                  <el-icon class="advanced-search-icon" @click.stop><Setting /></el-icon>
+                </template>
+                <div class="advanced-search-panel">
+                  <h4>高级搜索</h4>
+                  <el-form :model="advancedSearchForm" label-position="top">
+                    <el-form-item label="景点名称">
+                      <el-input v-model="advancedSearchForm.title" placeholder="输入景点名称"></el-input>
+                    </el-form-item>
+                    <el-form-item label="标签">
+                      <el-input v-model="advancedSearchForm.tag" placeholder="输入标签关键词"></el-input>
+                    </el-form-item>
+                    <el-form-item label="分类">
+                      <el-select v-model="advancedSearchForm.categoryId" placeholder="选择分类" clearable style="width: 100%">
+                        <el-option
+                          v-for="category in popularCategories"
+                          :key="category.id"
+                          :label="category.name"
+                          :value="category.id"
+                        />
+                      </el-select>
+                    </el-form-item>
+                    <div class="advanced-search-actions">
+                      <el-button type="primary" @click="handleAdvancedSearch">搜索</el-button>
+                      <el-button @click="resetAdvancedSearch">重置</el-button>
+                    </div>
+                  </el-form>
+                </div>
+              </el-popover>
+            </template>
+          </el-input>
         </div>
       </div>
+    </header>
+
+    <nav class="category-nav glass-card">
+      <router-link to="/user/categories" class="category-item is-primary">
+        <el-icon><Menu /></el-icon>
+        <span>全部分类</span>
+      </router-link>
+      <template v-for="category in popularCategories" :key="category.id">
+        <router-link :to="`/user/category/${category.id}`" class="category-item">
+          <el-image v-if="category.iconUrl" :src="category.iconUrl" class="category-icon" />
+          <el-icon v-else><Grid /></el-icon>
+          <span>{{ category.name }}</span>
+        </router-link>
+      </template>
     </nav>
 
-    <!-- 主内容区域 -->
     <main class="main-content">
       <router-view v-slot="{ Component, route }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" :key="route.fullPath" />
+        <transition name="fade-up" mode="out-in">
+          <component :is="Component" :key="route.fullPath" class="section-enter" />
         </transition>
       </router-view>
     </main>
 
-    <!-- 返回顶部按钮 -->
-    <el-backtop :right="20" :bottom="20" />
+    <el-backtop :right="24" :bottom="26" />
 
-    <!-- 页脚 -->
-    <footer class="main-footer">
-      <div class="footer-container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <img src="@/assets/images/logo.png" alt="logo" />
-            <span>Travel AI 推荐系统</span>
-          </div>
-          <div class="footer-info">
-            <p>© 2026 Travel AI 推荐系统 版权所有</p>
-            <p>本站内容仅供学习交流使用，请勿用于商业用途</p>
-          </div>
+    <footer class="main-footer glass-card">
+      <div class="footer-left">
+        <img src="@/assets/images/logo.png" alt="logo" />
+        <div>
+          <strong>Travel AI 推荐系统</strong>
+          <p>让每次出行都更像被理解，而不只是被搜索。</p>
         </div>
       </div>
     </footer>
@@ -178,7 +159,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import AlgoHealthCheck from './AlgoHealthCheck.vue'
 import { categoryApi } from '@/api/category'
-import { Search, Star, View, User, House, Menu, ChatDotRound, Grid, ArrowDown, Setting } from '@element-plus/icons-vue'
+import { Search, Star, View, Menu, Grid, ArrowDown, Setting } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -327,10 +308,7 @@ onUnmounted(() => {
 </script>
 
 <style>
-/* 全局样式修复 */
 body {
-  margin: 0;
-  min-height: 100vh;
   overflow-y: auto !important;
 }
 
@@ -346,122 +324,162 @@ body {
 </style>
 
 <style scoped>
-/* 原有样式 */
 .user-layout {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f4f5f7;
-  position: relative;
+  width: 100%;
+  padding: 14px 16px 12px;
   z-index: 1;
 }
 
-/* 顶部导航样式 */
-.main-header {
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.bg-orb {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  height: 64px;
+  border-radius: 50%;
+  filter: blur(62px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.62;
 }
 
-.header-container {
+.orb-1 {
+  width: 380px;
+  height: 380px;
+  background: #ffe2ba;
+  top: -140px;
+  left: -120px;
+}
+
+.orb-2 {
+  width: 460px;
+  height: 460px;
+  background: #c4f4ec;
+  bottom: -220px;
+  right: -140px;
+}
+
+.main-header {
+  position: sticky;
+  top: 10px;
+  z-index: 15;
+  border-radius: 22px;
+  border: 1px solid rgba(26, 38, 26, 0.08);
+  padding: 14px;
+}
+
+.header-top {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.brand-block {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  max-width: 1440px;
-  margin: 0 auto;
-  height: 100%;
-  padding: 0 20px;
+  gap: 10px;
+  min-width: 0;
 }
 
-.header-left {
+.brand-block img {
+  width: 34px;
+  height: 34px;
+}
+
+.brand-meta {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  margin-right: 30px;
-  font-size: 22px;
-  font-weight: bold;
-  color: #409EFF;
+.brand-meta strong {
+  font-size: 16px;
+  letter-spacing: 0.8px;
 }
 
-.logo img {
-  height: 32px;
-  margin-right: 8px;
+.brand-meta span {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #627062;
 }
 
 .primary-nav {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.nav-item {
-  padding: 0 15px;
-  font-size: 16px;
-  color: #333;
-  text-decoration: none;
-  height: 64px;
+.nav-pill {
   display: flex;
   align-items: center;
-  position: relative;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(20, 39, 28, 0.08);
+  font-weight: 600;
+  color: #334033;
+  transition: all 0.2s;
 }
 
-.nav-item:hover {
-  color: #409EFF;
+.nav-pill:hover,
+.nav-pill.router-link-active {
+  background: #184f45;
+  color: #f7fffc;
 }
 
-.nav-item.router-link-active {
-  color: #409EFF;
-  font-weight: 500;
-}
-
-.nav-item.router-link-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 15px;
-  right: 15px;
-  height: 3px;
-  background-color: #409EFF;
-  border-radius: 2px 2px 0 0;
-}
-
-.header-center {
-  flex: 1;
+.right-tools {
   display: flex;
-  justify-content: center;
-  max-width: 500px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.quick-link {
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 10px;
+  color: #425442;
+  background: rgba(255, 255, 255, 0.52);
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.quick-link:hover {
+  background: #184f45;
+  color: #fff;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 38px;
+  border-radius: 12px;
+  padding: 2px 8px 2px 2px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.user-chip span {
+  font-size: 13px;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-row {
+  margin-top: 12px;
 }
 
 .search-box {
   width: 100%;
-  margin: 0 20px;
-}
-
-.search-icon {
-  cursor: pointer;
-  color: #909399;
-}
-
-.search-icon:hover {
-  color: #409EFF;
-}
-
-.advanced-search-icon {
-  cursor: pointer;
-  color: #909399;
-  margin-left: 8px;
-}
-
-.advanced-search-icon:hover {
-  color: #409EFF;
 }
 
 .search-mode {
@@ -469,22 +487,34 @@ body {
   align-items: center;
   gap: 4px;
   padding: 0 8px;
-  color: #606266;
+  color: #4b5c4b;
   font-size: 14px;
   cursor: pointer;
   user-select: none;
 }
 
+.search-icon,
+.advanced-search-icon {
+  cursor: pointer;
+  color: #798979;
+  transition: color 0.2s;
+}
+
+.search-icon:hover,
+.advanced-search-icon:hover {
+  color: #145e51;
+}
+
 .advanced-search-panel {
-  padding: 15px;
+  padding: 10px 12px;
 }
 
 .advanced-search-panel h4 {
   margin-top: 0;
   margin-bottom: 16px;
-  color: #303133;
+  color: #2f3f2f;
   font-size: 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid #e4ece4;
   padding-bottom: 10px;
 }
 
@@ -495,85 +525,43 @@ body {
   margin-top: 16px;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.user-actions {
-  display: flex;
-  margin-right: 20px;
-}
-
-.action-item {
-  padding: 0 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 12px;
-  color: #606266;
-  text-decoration: none;
-}
-
-.action-item:hover {
-  color: #409EFF;
-}
-
-.action-item .el-icon {
-  font-size: 20px;
-  margin-bottom: 4px;
-}
-
-.user-info {
-  cursor: pointer;
-  padding: 0 8px;
-}
-
-.user-dropdown {
-  display: flex;
-  align-items: center;
-}
-
-/* 分类导航样式 */
 .category-nav {
-  background-color: #fff;
-  border-bottom: 1px solid #e4e7ed;
-  padding: 10px 0;
-  margin-top: 64px;
-}
-
-.category-nav-container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.primary-categories {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 20px;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(26, 41, 31, 0.08);
 }
 
 .category-item {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #606266;
-  padding: 6px 12px;
-  border-radius: 16px;
-  transition: all 0.3s;
+  color: #415441;
+  padding: 7px 12px;
+  border-radius: 999px;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(20, 40, 26, 0.07);
 }
 
 .category-item:hover {
-  background-color: #f0f2f5;
-  color: #409EFF;
+  background: #1f5f53;
+  color: #fff;
+}
+
+.category-item.is-primary {
+  background: #ef7b3f;
+  color: #fff;
+  border-color: transparent;
 }
 
 .category-item.router-link-active {
-  background-color: #ecf5ff;
-  color: #409EFF;
-  font-weight: 500;
+  background: #145f53;
+  color: #fff;
+  font-weight: 600;
 }
 
 .category-item .el-icon, .category-icon {
@@ -588,70 +576,97 @@ body {
   border-radius: 2px;
 }
 
-/* 主内容区样式 */
 .main-content {
   flex: 1;
-  max-width: 1600px;
-  margin: 20px auto;
-  padding: 0 20px;
+  max-width: none;
+  margin: 16px 0 0;
+  padding: 0;
   width: 100%;
 }
 
-@media (max-width: 768px) {
+.main-footer {
+  margin-top: 18px;
+  min-height: 74px;
+  border-radius: 18px;
+  border: 1px solid rgba(26, 36, 26, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-left img {
+  width: 30px;
+  height: 30px;
+}
+
+.footer-left strong {
+  font-size: 14px;
+}
+
+.footer-left p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #627062;
+}
+
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 12px;
+  color: #5f6f5f;
+}
+
+.fade-up-enter-active,
+.fade-up-leave-active {
+  transition: all 0.24s ease;
+}
+
+.fade-up-enter-from,
+.fade-up-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@media (max-width: 1180px) {
+  .header-top {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-nav,
+  .right-tools {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .main-content {
-    padding: 0 10px;
+    margin-top: 14px;
   }
 }
 
-/* 页脚样式 */
-.main-footer {
-  background-color: #fff;
-  border-top: 1px solid #e4e7ed;
-  padding: 30px 0;
-  margin-top: 40px;
-}
+@media (max-width: 768px) {
+  .user-layout {
+    padding: 10px;
+  }
 
-.footer-container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+  .main-header {
+    top: 6px;
+    padding: 10px;
+  }
 
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
+  .brand-meta span {
+    display: none;
+  }
 
-.footer-logo {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #606266;
-}
-
-.footer-logo img {
-  height: 24px;
-  margin-right: 8px;
-}
-
-.footer-info {
-  color: #909399;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* 动画效果 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  .footer-right {
+    display: none;
+  }
 }
 </style> 

@@ -1,101 +1,73 @@
-<!-- 基础布局组件 -->
 <template>
-  <el-container class="layout-container">
-    <!-- 侧边栏 -->
-    <el-aside :width="isCollapse ? '64px' : '200px'" class="aside">
-      <div class="logo" :class="{ 'logo-collapse': isCollapse }">
+  <div class="admin-workbench">
+    <div class="ambient ambient-left"></div>
+    <div class="ambient ambient-right"></div>
+
+    <header class="workbench-header glass-card">
+      <div class="brand-block">
         <img src="@/assets/images/logo.png" alt="logo" />
-        <span v-show="!isCollapse">Travel AI 推荐系统</span>
+        <div>
+          <strong>Travel AI OPS</strong>
+          <p>智能运营工作台</p>
+        </div>
       </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="menu"
-        :router="true"
-        :collapse="isCollapse"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
-      >
-        <!-- 管理员菜单 -->
-        <template v-if="isAdmin">
-          <el-menu-item index="/admin">
-            <el-icon><Monitor /></el-icon>
-            <template #title>控制台</template>
-          </el-menu-item>
-          <el-menu-item index="/admin/kgm">
-            <el-icon><Star /></el-icon>
-            <template #title>知识图谱管理</template>
-          </el-menu-item>
-          <el-menu-item index="/admin/users">
-            <el-icon><User /></el-icon>
-            <template #title>用户管理</template>
-          </el-menu-item>
-          <el-menu-item index="/admin/categories">
-            <el-icon><Files /></el-icon>
-            <template #title>类别管理</template>
-          </el-menu-item>
-          <el-menu-item index="/admin/items">
-            <el-icon><Files /></el-icon>
-            <template #title>景点管理</template>
-          </el-menu-item>
-          <el-menu-item index="/admin/user-actions">
-            <el-icon><Clock /></el-icon>
-            <template #title>用户行为历史</template>
-          </el-menu-item>
-        </template>
-      </el-menu>
-    </el-aside>
 
-    <!-- 主要内容区 -->
-    <el-container>
-      <!-- 头部 -->
-      <el-header class="header">
-        <div class="header-left">
-          <el-icon
-            class="collapse-btn"
-            @click="toggleCollapse"
-          >
-            <Fold v-if="!isCollapse" />
-            <Expand v-else />
-          </el-icon>
-          <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/user' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>{{ route.meta.title }}</el-breadcrumb-item>
-          </el-breadcrumb>
-        </div>
-        <div class="header-right">
-          <AlgoHealthCheck class="health-check" />
-          <el-dropdown @command="handleCommand">
-            <span class="user-info">
-              <el-avatar :size="32" :src="userInfo?.avatarUrl" />
-              <span>{{ userInfo?.username }}</span>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-      </el-header>
+      <nav class="workbench-nav" v-if="isAdmin">
+        <button
+          v-for="item in navItems"
+          :key="item.path"
+          class="nav-chip"
+          :class="{ active: activeMenu === item.path }"
+          @click="router.push(item.path)"
+        >
+          <el-icon><component :is="item.icon" /></el-icon>
+          <span>{{ item.label }}</span>
+        </button>
+      </nav>
 
-      <!-- 内容区 -->
-      <el-main class="main">
+      <div class="header-tools">
+        <AlgoHealthCheck class="health-check" />
+        <el-dropdown @command="handleCommand">
+          <span class="user-box">
+            <el-avatar :size="34" :src="userInfo?.avatarUrl" />
+            <span>{{ userInfo?.username }}</span>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </header>
+
+    <section class="workspace-grid">
+      <aside class="context-panel glass-card">
+        <h3>{{ route.meta.title || '管理控制台' }}</h3>
+        <p>在一个面板里联动内容治理、图谱运维和用户行为洞察。</p>
+        <div class="quick-actions">
+          <el-button class="quick-action-btn" size="small" type="primary" plain @click="router.push('/admin/users')">用户</el-button>
+          <el-button class="quick-action-btn" size="small" type="primary" plain @click="router.push('/admin/items')">景点</el-button>
+          <el-button class="quick-action-btn" size="small" type="primary" plain @click="router.push('/admin/kgm')">图谱</el-button>
+        </div>
+      </aside>
+
+      <main class="admin-content">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
+          <transition name="route-fade" mode="out-in">
+            <component :is="Component" class="section-enter" />
           </transition>
         </router-view>
-      </el-main>
-    </el-container>
-  </el-container>
+      </main>
+    </section>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { Monitor, User, Files, Box, Fold, Expand, Star, Clock, View, ShoppingCart, ChatLineRound } from '@element-plus/icons-vue'
+import { Monitor, User, Files, Star, Clock } from '@element-plus/icons-vue'
 import AlgoHealthCheck from './AlgoHealthCheck.vue'
 
 const route = useRoute()
@@ -111,13 +83,14 @@ const userInfo = computed(() => userStore.userInfo)
 // 是否是管理员
 const isAdmin = computed(() => userStore.isAdmin())
 
-// 侧边栏折叠状态
-const isCollapse = ref(false)
-
-// 切换侧边栏折叠状态
-const toggleCollapse = () => {
-  isCollapse.value = !isCollapse.value
-}
+const navItems = [
+  { path: '/admin', label: '控制台', icon: Monitor },
+  { path: '/admin/kgm', label: '知识图谱', icon: Star },
+  { path: '/admin/users', label: '用户治理', icon: User },
+  { path: '/admin/categories', label: '分类中心', icon: Files },
+  { path: '/admin/items', label: '景点资产', icon: Files },
+  { path: '/admin/user-actions', label: '行为日志', icon: Clock }
+]
 
 // 处理下拉菜单命令
 const handleCommand = (command: string) => {
@@ -130,115 +103,197 @@ const handleCommand = (command: string) => {
 </script>
 
 <style scoped>
-.layout-container {
-  height: 100vh;
+.admin-workbench {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding: 14px;
 }
 
-.aside {
-  background-color: #304156;
-  transition: width 0.3s;
-  overflow: hidden;
+.ambient {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.65;
 }
 
-.logo {
-  height: 60px;
+.ambient-left {
+  width: 320px;
+  height: 320px;
+  top: -120px;
+  left: -80px;
+  background: #ffe7b3;
+}
+
+.ambient-right {
+  width: 420px;
+  height: 420px;
+  right: -150px;
+  bottom: -180px;
+  background: #c8f6eb;
+}
+
+.workbench-header {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  color: #fff;
-  transition: all 0.3s;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.logo-collapse {
-  padding: 0 16px;
-}
-
-.logo img {
-  width: 32px;
-  height: 32px;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.menu {
-  border-right: none;
-  background-color: transparent;
-}
-
-.menu:not(.el-menu--collapse) {
-  width: 200px;
-}
-
-:deep(.el-menu--collapse) {
-  width: 64px;
-}
-
-:deep(.el-menu-item) {
-  &.is-active {
-    background-color: #263445;
-  }
-
-  &:hover {
-    background-color: #263445;
-  }
-}
-
-.header {
-  background-color: #fff;
-  border-bottom: 1px solid #dcdfe6;
-  display: flex;
-  align-items: center;
+  gap: 12px;
   justify-content: space-between;
-  padding: 0 20px;
+  border-radius: 22px;
+  padding: 12px;
+  border: 1px solid rgba(31, 43, 31, 0.08);
 }
 
-.header-left {
+.brand-block {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.collapse-btn {
-  font-size: 20px;
+.brand-block img {
+  width: 34px;
+  height: 34px;
+}
+
+.brand-block strong {
+  font-size: 15px;
+  letter-spacing: 0.6px;
+}
+
+.brand-block p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #607260;
+}
+
+.workbench-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav-chip {
+  border: 1px solid rgba(23, 35, 23, 0.12);
+  background: rgba(255, 255, 255, 0.62);
+  color: #364936;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
   cursor: pointer;
-  margin-right: 20px;
-  transition: transform 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
 }
 
-.header-right {
+.nav-chip:hover,
+.nav-chip.active {
+  background: #104a40;
+  border-color: transparent;
+  color: #fff;
+}
+
+.header-tools {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
-.health-check {
-  margin-right: 8px;
-}
-
-.user-info {
+.user-box {
   display: flex;
   align-items: center;
+  gap: 8px;
   cursor: pointer;
+  padding: 3px 8px 3px 3px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
-.user-info span {
-  margin-left: 8px;
+.workspace-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
 }
 
-.main {
-  background-color: #f0f2f5;
-  padding: 20px;
+.context-panel {
+  border-radius: 20px;
+  border: 1px solid rgba(20, 32, 20, 0.08);
+  padding: 16px;
+  min-height: 180px;
+  position: relative;
+  top: 0;
+  align-self: start;
 }
 
-/* 路由过渡动画 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+.context-panel h3 {
+  margin: 0;
+  font-size: 18px;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.context-panel p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #5f6f5f;
+  line-height: 1.5;
+}
+
+.quick-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.quick-action-btn {
+  width: 100%;
+  margin-left: 0;
+  justify-content: center;
+}
+
+.quick-action-btn + .quick-action-btn {
+  margin-left: 0;
+}
+
+.admin-content {
+  padding: 0;
+  min-width: 0;
+  align-self: start;
+}
+
+.route-fade-enter-active,
+.route-fade-leave-active {
+  transition: all 0.25s ease;
+}
+
+.route-fade-enter-from,
+.route-fade-leave-to {
   opacity: 0;
+  transform: translateY(10px);
+}
+
+@media (max-width: 980px) {
+  .admin-workbench {
+    padding: 10px;
+  }
+
+  .workbench-header {
+    flex-wrap: wrap;
+    top: 4px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .context-panel {
+    position: relative;
+  }
 }
 </style> 

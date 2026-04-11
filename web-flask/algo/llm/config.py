@@ -7,7 +7,7 @@ MODEL_CONFIGS = {
     'qwen-plus': {
         'name': 'Qwen-Plus',
         'api_url': 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-        'api_key': 'sk-a0030183d5dc4b0bbb1a403db429a738',
+        'api_key': 'sk-07395271a9934fb58646aad42a785ae5',
         'max_tokens': 2048,
         'temperature': 0.7,
         'model': 'qwen-plus'
@@ -15,7 +15,7 @@ MODEL_CONFIGS = {
     'qwen-max': {
         'name': 'Qwen-Max',
         'api_url': 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-        'api_key': 'sk-a0030183d5dc4b0bbb1a403db429a738',
+        'api_key': 'sk-07395271a9934fb58646aad42a785ae5',
         'max_tokens': 4096,
         'temperature': 0.7,
         'model': 'qwen-max'
@@ -23,7 +23,7 @@ MODEL_CONFIGS = {
     'qwen-turbo': {
         'name': 'Qwen-Turbo',
         'api_url': 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-        'api_key': 'sk-a0030183d5dc4b0bbb1a403db429a738',
+        'api_key': 'sk-07395271a9934fb58646aad42a785ae5',
         'max_tokens': 2048,
         'temperature': 0.7,
         'model': 'qwen-turbo'
@@ -31,7 +31,7 @@ MODEL_CONFIGS = {
     'deepseek-r1': {
         'name': 'DeepSeek-R1',
         'api_url': 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-        'api_key': 'sk-a0030183d5dc4b0bbb1a403db429a738',
+        'api_key': 'sk-07395271a9934fb58646aad42a785ae5',
         'max_tokens': 4096,
         'temperature': 0.7,
         'model': 'deepseek-r1'
@@ -39,7 +39,7 @@ MODEL_CONFIGS = {
     'deepseek-v3': {
         'name': 'DeepSeek-V3',
         'api_url': 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-        'api_key': 'sk-a0030183d5dc4b0bbb1a403db429a738',
+        'api_key': 'sk-07395271a9934fb58646aad42a785ae5',
         'max_tokens': 4096,
         'temperature': 0.7,
         'model': 'deepseek-v3'

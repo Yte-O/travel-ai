@@ -1,244 +1,179 @@
-<!-- 用户首页 -->
 <template>
   <div class="user-home">
-    <!-- 轮播图区域 -->
-    <div class="banner-section">
-      <el-carousel 
-        :interval="4000" 
-        type="card" 
-        height="200px" 
-        indicator-position="outside"
-        :autoplay="true"
-      >
-        <el-carousel-item v-for="(banner, index) in banners" :key="index">
-          <div class="banner-item" @click="handleBannerClick(banner)">
-            <el-image 
-              :src="banner.imageUrl" 
-              fit="cover" 
-              class="banner-image"
-              :preview-src-list="[banner.imageUrl]"
-              :initial-index="0"
+    <section class="hero-grid">
+      <article class="hero-main glass-card" @click="handleBannerClick(heroBanner)">
+        <el-image :src="heroBanner.imageUrl" fit="cover" class="hero-image" />
+        <div class="hero-mask">
+          <p class="hero-kicker">AI TRAVEL CURATION</p>
+          <h1>{{ heroBanner.title }}</h1>
+          <span>从兴趣到路线，生成你自己的旅行节奏。</span>
+        </div>
+      </article>
+
+      <aside class="hero-side glass-card">
+        <div class="traveler">
+          <el-avatar :size="56" :src="userInfo?.avatarUrl || defaultAvatar">
+            {{ userInfo?.username?.substring(0, 1) }}
+          </el-avatar>
+          <div>
+            <h3>{{ userInfo?.realName || userInfo?.username || '游客' }}</h3>
+            <p>{{ userInfo?.role === 1 ? '管理员权限已开启' : '今日适合探索新的目的地' }}</p>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div>
+            <strong>{{ userStats.favorites || 0 }}</strong>
+            <span>收藏</span>
+          </div>
+          <div>
+            <strong>{{ userStats.history || 0 }}</strong>
+            <span>浏览</span>
+          </div>
+          <div>
+            <strong>{{ userStats.reservations || 0 }}</strong>
+            <span>预约</span>
+          </div>
+        </div>
+
+        <div class="recent-chat">
+          <div class="recent-chat-head">
+            <label>与 AI 最近对话</label>
+            <el-button link type="primary" @click="goToChat">查看全部聊天</el-button>
+          </div>
+
+          <div v-if="recentMessages.length > 0" class="recent-chat-body">
+            <div
+              v-for="(message, index) in recentMessages"
+              :key="`${message.id || 'temp'}-${index}`"
+              class="recent-message"
+              :class="message.role"
+            >
+              <span class="role-tag">{{ message.role === 'assistant' ? 'AI' : '我' }}</span>
+              <p>{{ message.content }}</p>
+            </div>
+          </div>
+          <el-empty v-else description="还没有最近对话，来聊聊行程吧" :image-size="50" />
+
+          <div class="recent-chat-input">
+            <el-input
+              v-model="quickChatInput"
+              placeholder="问问 AI：帮我安排一日游"
+              :disabled="!canQuickChat || quickChatLoading"
+              @keyup.enter="sendQuickChat"
             />
-            <div class="banner-title">{{ banner.title }}</div>
+            <el-button
+              type="primary"
+              :loading="quickChatLoading"
+              :disabled="!canQuickChat"
+              @click="sendQuickChat"
+            >
+              发送
+            </el-button>
           </div>
-        </el-carousel-item>
-      </el-carousel>
-    </div>
+        </div>
 
-    <div class="home-content">
-      <!-- 左侧内容区 -->
-      <div class="main-section">
-        <!-- 推荐景点 -->
-        <div class="section-container">
-          <div class="section-header">
-            <div class="section-title-container">
-              <h2 class="section-title">推荐景点</h2>
-              <div class="recommendation-type-selector">
-                <el-radio-group v-model="recommendationType" size="small" @change="fetchRecommendedItems">
-                                <el-radio-button value="user">相似用户</el-radio-button>
-              <el-radio-button value="content">相似景点</el-radio-button>
-                </el-radio-group>
-              </div>
+        <el-button class="chat-entry" type="primary" round @click="goToChat">
+          <el-icon><ChatDotRound /></el-icon>
+          打开 AI 行程助手
+        </el-button>
+      </aside>
+    </section>
+
+    <section class="category-strip glass-card">
+      <header>
+        <h2>灵感分类</h2>
+        <router-link to="/user/categories">查看全部</router-link>
+      </header>
+      <div class="category-track">
+        <button
+          v-for="category in popularCategories"
+          :key="category.id"
+          class="category-chip"
+          @click="goToCategoryDetail(category.id)"
+        >
+          <el-image v-if="category.iconUrl" :src="category.iconUrl" class="chip-icon" />
+          <el-icon v-else><Grid /></el-icon>
+          <span>{{ category.name }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="recommend-river glass-card">
+        <header class="block-head block-head--recommend">
+          <h2>为你准备的推荐流</h2>
+          <div class="recommend-actions">
+            <div class="mode-switch mode-switch-inline">
+              <label>推荐模式</label>
+              <el-radio-group v-model="recommendationType" size="small" @change="fetchRecommendedItems">
+                <el-radio-button value="user">相似用户</el-radio-button>
+                <el-radio-button value="content">相似景点</el-radio-button>
+              </el-radio-group>
             </div>
-            <router-link to="/user/items" class="more-link">
-              更多
-              <el-icon><ArrowRight /></el-icon>
-            </router-link>
+            <router-link to="/user/items">更多景点</router-link>
           </div>
-          
-          <div class="item-grid">
-            <div 
-              v-for="item in recommendedItems" 
-              :key="item.id" 
-              class="item-card"
+        </header>
+
+        <div v-if="recommendationsLoading" class="loading-container">
+          <el-skeleton :rows="4" animated />
+        </div>
+
+        <template v-else>
+          <el-empty v-if="recommendedItems.length === 0" description="暂无推荐景点" />
+
+          <div v-else class="river-cards">
+            <article
+              v-for="(item, index) in recommendedItems"
+              :key="item.id"
+              class="river-card"
+              :class="{ feature: index === 0 }"
               @click="goToItemDetail(item.id)"
             >
-              <div class="item-cover">
-                <el-image 
-                  :src="item.coverUrl || defaultCover" 
-                  fit="cover" 
-                  class="cover-image"
-                  loading="lazy"
-                >
-                  <template #error>
-                    <div class="image-placeholder">
-                      <el-icon><Picture /></el-icon>
-                    </div>
-                  </template>
-                </el-image>
-                <div class="item-stats">
-                  <span class="stat">
-                    <el-icon><View /></el-icon> {{ formatNumber(item.views || 0) }}
-                  </span>
-                  <span class="stat">
-                    <el-icon><Star /></el-icon> {{ formatNumber(item.favorites || 0) }}
-                  </span>
+              <el-image :src="item.coverUrl || defaultCover" fit="cover" class="river-cover">
+                <template #error>
+                  <div class="image-placeholder"><el-icon><Picture /></el-icon></div>
+                </template>
+              </el-image>
+              <div class="river-info">
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.userRealName || item.username || '未知用户' }}</p>
+                <div class="river-meta">
+                  <span><el-icon><View /></el-icon>{{ formatNumber(item.views || 0) }}</span>
+                  <span><el-icon><Star /></el-icon>{{ formatNumber(item.favorites || 0) }}</span>
                 </div>
               </div>
-              <div class="item-info">
-                <div class="item-title">{{ item.title }}</div>
-                <div class="item-meta">
-                  <span class="uploader">{{ item.userRealName || item.username || '未知用户' }}</span>
-                  <span v-if="item.categoryName" class="item-category">
-                    <el-tag size="small" effect="plain">{{ item.categoryName }}</el-tag>
-                  </span>
-                </div>
-              </div>
-            </div>
+            </article>
           </div>
-
-          <el-empty 
-            v-if="recommendedItems.length === 0 && !recommendationsLoading" 
-            description="暂无推荐景点" 
-          />
-          <div v-if="recommendationsLoading" class="loading-container">
-            <el-skeleton :rows="3" animated />
-          </div>
-        </div>
-
-        <!-- 热门景点 -->
-        <div class="section-container">
-          <div class="section-header">
-            <h2 class="section-title">热门景点</h2>
-            <router-link to="/user/items?sort=popular" class="more-link">
-              更多
-              <el-icon><ArrowRight /></el-icon>
-            </router-link>
-          </div>
-          
-          <div class="item-grid">
-            <div 
-              v-for="item in popularItems" 
-              :key="item.id" 
-              class="item-card"
-              @click="goToItemDetail(item.id)"
-            >
-              <div class="item-cover">
-                <el-image 
-                  :src="item.coverUrl || defaultCover" 
-                  fit="cover" 
-                  class="cover-image"
-                  loading="lazy"
-                >
-                  <template #error>
-                    <div class="image-placeholder">
-                      <el-icon><Picture /></el-icon>
-                    </div>
-                  </template>
-                </el-image>
-                <div class="item-stats">
-                  <span class="stat">
-                    <el-icon><View /></el-icon> {{ formatNumber(item.views || 0) }}
-                  </span>
-                  <span class="stat">
-                    <el-icon><Star /></el-icon> {{ formatNumber(item.favorites || 0) }}
-                  </span>
-                </div>
-              </div>
-              <div class="item-info">
-                <div class="item-title">{{ item.title }}</div>
-                <div class="item-meta">
-                  <span class="uploader">{{ item.userRealName || '未知用户' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <el-empty 
-            v-if="popularItems.length === 0 && !loading" 
-            description="暂无热门景点" 
-          />
-          <div v-if="loading" class="loading-container">
-            <el-skeleton :rows="3" animated />
-          </div>
-        </div>
+        </template>
       </div>
 
-      <!-- 右侧边栏 -->
-      <div class="sidebar-section">
-        <!-- 用户信息卡片 -->
-        <div class="user-card">
-          <div class="user-profile">
-            <el-avatar :size="50" :src="userInfo?.avatarUrl || defaultAvatar">
-              {{ userInfo?.username?.substring(0, 1) }}
-            </el-avatar>
-            <div class="user-details">
-              <div class="username">{{ userInfo?.realName || userInfo?.username || '游客' }}</div>
-              <div class="user-role">{{ userInfo?.role === 1 ? '管理员' : '普通用户' }}</div>
-            </div>
-          </div>
-          <div class="user-stats">
-            <div class="stat-item">
-              <div class="stat-value">{{ userStats.favorites || 0 }}</div>
-              <div class="stat-label">收藏</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">{{ userStats.history || 0 }}</div>
-              <div class="stat-label">浏览历史</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">{{ userStats.reservations || 0 }}</div>
-              <div class="stat-label">已预约</div>
-            </div>
-          </div>
+      <aside class="rank-board glass-card">
+        <header class="block-head">
+          <h2>热度榜</h2>
+          <router-link to="/user/items?sort=popular">完整榜单</router-link>
+        </header>
+
+        <div v-if="loading" class="loading-container">
+          <el-skeleton :rows="4" animated />
         </div>
 
-        <!-- 热门分类 -->
-        <div class="sidebar-card">
-          <div class="card-header">
-            <h3>热门分类</h3>
-            <router-link to="/user/categories" class="more-link">
-              更多
-              <el-icon><ArrowRight /></el-icon>
-            </router-link>
-          </div>
-          <div class="category-list">
-            <div 
-              v-for="category in popularCategories" 
-              :key="category.id" 
-              class="category-item"
-              @click="goToCategoryDetail(category.id)"
-            >
-              <div class="category-icon">
-                <el-image 
-                  v-if="category.iconUrl" 
-                  :src="category.iconUrl" 
-                  fit="cover"
-                  loading="lazy"
-                />
-                <el-icon v-else><Grid /></el-icon>
+        <template v-else>
+          <el-empty v-if="topHotItems.length === 0" description="暂无热门景点" />
+
+          <ol v-else class="rank-list">
+            <li v-for="(item, index) in topHotItems" :key="item.id" @click="goToItemDetail(item.id)">
+              <span class="rank-index">{{ index + 1 }}</span>
+              <div class="rank-title">
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.userRealName || '未知用户' }}</p>
               </div>
-              <div class="category-name">{{ category.name }}</div>
-            </div>
-          </div>
-          <el-empty 
-            v-if="popularCategories.length === 0 && !loading" 
-            description="暂无分类" 
-            :image-size="60"
-          />
-        </div>
-
-        <!-- AI 聊天入口 -->
-        <div class="chat-card">
-          <div class="chat-icon">
-            <el-icon><ChatDotRound /></el-icon>
-          </div>
-          <div class="chat-info">
-            <div class="chat-title">AI 智能助手</div>
-            <div class="chat-desc">有任何问题，随时向AI提问</div>
-          </div>
-          <el-button 
-            type="primary" 
-            size="small" 
-            @click="goToChat"
-            class="chat-button"
-            round
-          >
-            开始聊天
-          </el-button>
-        </div>
-      </div>
-    </div>
+              <span class="rank-score">{{ formatNumber((item.views || 0) + (item.favorites || 0)) }}</span>
+            </li>
+          </ol>
+        </template>
+      </aside>
+    </section>
   </div>
 </template>
 
@@ -246,14 +181,16 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { ArrowRight, Picture, View, Star, Grid, ChatDotRound } from '@element-plus/icons-vue'
+import { Picture, View, Star, Grid, ChatDotRound } from '@element-plus/icons-vue'
 import { itemApi } from '@/api/item'
 import { categoryApi } from '@/api/category'
 import { favoriteApi } from '@/api/favorite'
 import { pageMyActions, getItemViewCount } from '@/api/userAction'
 import { recommendationApi } from '@/api/recommendation'
+import { chatApi, llmApi } from '@/api/chat'
 import { fileRequest } from '@/api/file_request'
 import { ElMessage } from 'element-plus'
+import type { ChatMessage } from '@/types/chat'
 
 // 使用网络图片URL替代本地资源
 const defaultAvatar = 'https://pic.imgdb.cn/item/65ae0c899f345e8d03301865.jpg'
@@ -265,6 +202,12 @@ const loading = ref(true)
 const recommendationsLoading = ref(false) // 单独的推荐加载状态
 const userInfo = computed(() => userStore.userInfo)
 const recommendationType = ref('user') // 推荐类型：相似用户或相似景点
+const quickChatSessionId = ref<number | null>(null)
+const recentMessages = ref<ChatMessage[]>([])
+const quickChatInput = ref('')
+const quickChatLoading = ref(false)
+const quickChatModel = 'qwen-turbo'
+const canQuickChat = computed(() => !!userStore.userInfo?.id)
 
 // 用户统计数据
 const userStats = ref({
@@ -303,6 +246,8 @@ const popularItems = ref<any[]>([])
 
 // 热门分类
 const popularCategories = ref<any[]>([])
+const heroBanner = computed(() => banners.value[0])
+const topHotItems = computed(() => popularItems.value.slice(0, 6))
 
 // 格式化数字（如：1000 -> 1k）
 const formatNumber = (num: number) => {
@@ -329,6 +274,99 @@ const goToCategoryDetail = (id: number) => {
 // 跳转到聊天页面
 const goToChat = () => {
   router.push('/user/chat')
+}
+
+const ensureQuickChatSession = async () => {
+  if (quickChatSessionId.value) return quickChatSessionId.value
+
+  const sessions = await chatApi.getSessions()
+  if (sessions.length > 0) {
+    quickChatSessionId.value = sessions[0].id
+    return quickChatSessionId.value
+  }
+
+  const timestamp = new Date().toLocaleString('zh-CN', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric'
+  })
+  const newSession = await chatApi.createSession({
+    sessionName: `首页快速对话 (${timestamp})`
+  })
+  quickChatSessionId.value = newSession.id
+  return quickChatSessionId.value
+}
+
+const loadRecentChatMessages = async () => {
+  if (!canQuickChat.value) {
+    recentMessages.value = []
+    return
+  }
+
+  try {
+    const sessionId = await ensureQuickChatSession()
+    const messages = await chatApi.getMessages({ sessionId })
+    recentMessages.value = messages.slice(-4)
+  } catch (error) {
+    console.error('加载最近对话失败', error)
+  }
+}
+
+const sendQuickChat = async () => {
+  if (quickChatLoading.value) return
+
+  if (!canQuickChat.value) {
+    ElMessage.warning('请先登录后再使用对话功能')
+    return
+  }
+
+  const content = quickChatInput.value.trim()
+  if (!content) return
+
+  quickChatLoading.value = true
+  try {
+    const sessionId = await ensureQuickChatSession()
+    const userMessage: ChatMessage = {
+      sessionId,
+      role: 'user',
+      content,
+      model: quickChatModel,
+      messageTime: new Date().toISOString()
+    }
+
+    recentMessages.value = [...recentMessages.value, userMessage].slice(-4)
+    quickChatInput.value = ''
+
+    const aiDbMessage = await chatApi.sendMessage({
+      sessionId,
+      content,
+      model: quickChatModel
+    })
+
+    const llmResponse = await llmApi.chat(quickChatModel, recentMessages.value)
+
+    if (aiDbMessage.id) {
+      await chatApi.updateMessageContent(aiDbMessage.id, llmResponse)
+    }
+
+    const assistantMessage: ChatMessage = {
+      id: aiDbMessage.id,
+      sessionId,
+      role: 'assistant',
+      content: llmResponse,
+      model: quickChatModel,
+      messageTime: aiDbMessage.messageTime
+    }
+    recentMessages.value = [...recentMessages.value, assistantMessage].slice(-4)
+    document.dispatchEvent(new CustomEvent('refresh-session-list'))
+  } catch (error) {
+    console.error('首页快速对话失败', error)
+    ElMessage.error('发送失败，请稍后重试')
+    await loadRecentChatMessages()
+  } finally {
+    quickChatLoading.value = false
+  }
 }
 
 // 获取推荐景点
@@ -489,7 +527,8 @@ onMounted(async () => {
       fetchRecommendedItems(),
       fetchPopularItems(),
       fetchPopularCategories(),
-      fetchUserStats()
+      fetchUserStats(),
+      loadRecentChatMessages()
     ])
   } finally {
     loading.value = false
@@ -499,432 +538,448 @@ onMounted(async () => {
 
 <style scoped>
 .user-home {
-  padding-top: 10px;
-}
-
-/* 轮播图区域 */
-.banner-section {
-  margin-bottom: 30px;
-}
-
-.banner-item {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  height: 100%;
-}
-
-.banner-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
-  transition: transform 0.3s;
-}
-
-.banner-item:hover .banner-image {
-  transform: scale(1.05);
-}
-
-.banner-title {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px 15px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-/* 内容区域布局 */
-.home-content {
-  display: flex;
-  gap: 20px;
-}
-
-.main-section {
-  flex: 1;
-}
-
-.sidebar-section {
-  width: 300px;
-}
-
-/* 内容区块通用样式 */
-.section-container {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.section-title-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  gap: 14px;
+  width: 100%;
 }
 
-.section-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0;
-  color: #303133;
-  position: relative;
-  padding-left: 12px;
-}
-
-.section-title::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 18px;
-  background-color: #409EFF;
-  border-radius: 2px;
-}
-
-.recommendation-type-selector {
-  margin-left: 12px;
-  margin-top: 4px;
-}
-
-.more-link {
-  color: #909399;
-  font-size: 14px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-}
-
-.more-link:hover {
-  color: #409EFF;
-}
-
-.more-link .el-icon {
-  margin-left: 4px;
-  font-size: 12px;
-}
-
-/* 景点卡片布局 */
-.item-grid {
+.hero-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.9fr);
+  gap: 14px;
+}
+
+.hero-main {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 320px;
+  border: 1px solid rgba(30, 45, 30, 0.08);
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  filter: saturate(1.08);
+}
+
+.hero-mask {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(6, 15, 10, 0.74) 78%);
+  color: #fff;
+}
+
+.hero-kicker {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  opacity: 0.85;
+}
+
+.hero-mask h1 {
+  margin: 8px 0 8px;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.12;
+}
+
+.hero-mask span {
+  display: block;
+  font-size: 14px;
+  opacity: 0.92;
+}
+
+.hero-side {
+  border-radius: 20px;
+  border: 1px solid rgba(30, 45, 30, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
-.item-card {
-  cursor: pointer;
-  border-radius: 6px;
-  overflow: hidden;
-  transition: all 0.3s;
-  background-color: white;
-}
-
-.item-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.item-cover {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  background-color: #f0f2f5;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.cover-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.item-card:hover .cover-image {
-  transform: scale(1.05);
-}
-
-.image-placeholder {
-  width: 100%;
-  height: 100%;
+.traveler {
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: #f5f7fa;
-  color: #c0c4cc;
+  gap: 10px;
 }
 
-.image-placeholder .el-icon {
-  font-size: 24px;
+.traveler h3 {
+  margin: 0;
+  font-size: 18px;
 }
 
-.item-stats {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 6px 8px;
+.traveler p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #5c6b5c;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-row div {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(18, 34, 20, 0.08);
+  border-radius: 12px;
+  text-align: center;
+  padding: 8px;
+}
+
+.stat-row strong {
+  display: block;
+  font-size: 18px;
+}
+
+.stat-row span {
+  font-size: 12px;
+  color: #617161;
+}
+
+.mode-switch {
+  display: grid;
+  gap: 8px;
+}
+
+.mode-switch-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-switch label {
+  font-size: 12px;
+  color: #5d6f5d;
+  font-weight: 600;
+}
+
+.chat-entry {
+  margin-top: 8px;
+}
+
+.recent-chat {
+  border: 1px solid rgba(18, 34, 20, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 8px;
+}
+
+.recent-chat-head {
   display: flex;
   justify-content: space-between;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
-  color: white;
-  font-size: 12px;
-}
-
-.stat {
-  display: flex;
   align-items: center;
 }
 
-.stat .el-icon {
-  margin-right: 4px;
+.recent-chat-head label {
   font-size: 12px;
+  color: #5d6f5d;
+  font-weight: 600;
 }
 
-.item-info {
-  padding: 10px 0 5px;
+.recent-chat-body {
+  flex: 1;
+  min-height: 170px;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
 }
 
-.item-title {
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 500;
-  margin-bottom: 5px;
-  color: #303133;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.recent-message {
+  border: 1px solid rgba(20, 34, 20, 0.08);
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: #fff;
+}
+
+.recent-message.user {
+  background: #edf8f6;
+}
+
+.recent-message.assistant {
+  background: #f7f7ff;
+}
+
+.role-tag {
+  display: inline-block;
+  font-size: 11px;
+  color: #2f5d56;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.recent-message p {
+  margin: 0;
+  font-size: 12px;
+  color: #334433;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  height: 40px;
+  overflow: hidden;
 }
 
-.item-meta {
-  color: #909399;
-  font-size: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.uploader {
-  display: flex;
-  align-items: center;
-}
-
-.item-category {
-  margin-left: 8px;
-}
-
-/* 用户信息卡片 */
-.user-card,
-.sidebar-card,
-.chat-card {
-  background: white;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.user-details {
-  margin-left: 15px;
-}
-
-.username {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: #303133;
-}
-
-.user-role {
-  font-size: 12px;
-  color: #909399;
-}
-
-.user-stats {
-  display: flex;
-  justify-content: space-between;
-  border-top: 1px solid #f0f2f5;
-  padding-top: 15px;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 4px;
-}
-
-/* 卡片通用标题 */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.card-header h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: #303133;
-}
-
-/* 分类列表 */
-.category-list {
+.recent-chat-input {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
 }
 
-.category-list .category-item {
+.category-strip,
+.recommend-river,
+.rank-board {
+  border-radius: 20px;
+  border: 1px solid rgba(24, 37, 24, 0.08);
+  padding: 14px;
+}
+
+.category-strip header,
+.block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.block-head--recommend {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recommend-actions {
   display: flex;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.category-strip h2,
+.block-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.category-strip a,
+.block-head a {
+  color: #12584d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.category-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.category-chip {
+  border: 1px solid rgba(22, 37, 22, 0.08);
+  background: rgba(255, 255, 255, 0.58);
+  border-radius: 999px;
+  height: 38px;
+  padding: 0 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.category-chip:hover {
+  background: #145a4f;
+  color: #fff;
+}
+
+.chip-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.9fr);
+  gap: 14px;
+}
+
+.river-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.river-card {
+  border: 1px solid rgba(22, 34, 22, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.58);
+  transition: transform 0.2s;
+}
+
+.river-card:hover {
+  transform: translateY(-2px);
+}
+
+.river-card.feature {
+  grid-column: span 2;
+}
+
+.river-cover {
+  width: 100%;
+  height: 150px;
+}
+
+.river-card.feature .river-cover {
+  height: 210px;
+}
+
+.river-info {
+  padding: 10px;
+}
+
+.river-info h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.river-info p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #657565;
+}
+
+.river-meta {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #556555;
+}
+
+.river-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.rank-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  border: 1px solid rgba(20, 34, 20, 0.08);
+  border-radius: 12px;
   padding: 8px;
-  border-radius: 6px;
-  background-color: #f5f7fa;
+  background: rgba(255, 255, 255, 0.56);
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.category-list .category-item:hover {
-  background-color: #ecf5ff;
+.rank-list li:hover {
+  transform: translateX(2px);
 }
 
-.category-icon {
+.rank-index {
   width: 28px;
   height: 28px;
-  display: flex;
-  justify-content: center;
+  border-radius: 8px;
+  display: inline-flex;
   align-items: center;
-  margin-right: 8px;
-  color: #409EFF;
+  justify-content: center;
+  background: #e9f3ff;
+  color: #1f5b9d;
+  font-weight: 700;
 }
 
-.category-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 4px;
+.rank-title {
+  flex: 1;
+  min-width: 0;
 }
 
-.category-name {
+.rank-title strong {
+  display: block;
   font-size: 14px;
-  color: #606266;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* AI 聊天卡片 */
-.chat-card {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  background: linear-gradient(135deg, #e0f2ff, #e6f7ff);
-  border-radius: 8px;
-}
-
-.chat-icon {
-  font-size: 28px;
-  color: #409EFF;
-  margin-right: 15px;
-}
-
-.chat-info {
-  flex: 1;
-}
-
-.chat-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  margin-bottom: 4px;
-}
-
-.chat-desc {
+.rank-title p {
+  margin: 4px 0 0;
   font-size: 12px;
-  color: #606266;
+  color: #677667;
 }
 
-.chat-button {
-  margin-left: 10px;
+.rank-score {
+  font-size: 13px;
+  color: #2f5d56;
+  font-weight: 600;
 }
 
-/* 加载状态 */
 .loading-container {
   padding: 20px 0;
 }
 
-/* 响应式调整 */
 @media (max-width: 1200px) {
-  .item-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .hero-grid,
+  .content-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 992px) {
-  .home-content {
-    flex-direction: column;
+  .river-cards {
+    grid-template-columns: 1fr;
   }
-  
-  .sidebar-section {
-    width: 100%;
-  }
-}
 
-@media (max-width: 768px) {
-  .item-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .more-link {
-    margin-top: 10px;
+  .river-card.feature {
+    grid-column: span 1;
   }
 }
 
 @media (max-width: 576px) {
-  .item-grid {
+  .hero-main {
+    min-height: 260px;
+  }
+
+  .hero-mask h1 {
+    font-size: 24px;
+  }
+
+  .stat-row {
     grid-template-columns: 1fr;
+  }
+
+  .recent-chat-input {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-switch-inline {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style> 
