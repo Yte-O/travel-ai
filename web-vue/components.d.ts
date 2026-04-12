@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AlgoHealthCheck: typeof import('./src/components/AlgoHealthCheck.vue')['default']
+    AnimatedCharacters: typeof import('./src/components/user/AnimatedCharacters.vue')['default']
     ChatInput: typeof import('./src/components/chat/ChatInput.vue')['default']
     ChatMessage: typeof import('./src/components/chat/ChatMessage.vue')['default']
     CommentList: typeof import('./src/components/CommentList.vue')['default']
