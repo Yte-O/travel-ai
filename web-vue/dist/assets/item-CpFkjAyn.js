@@ -1,1 +1,0 @@
-import{r as e}from"./index-BrDrMCyp.js";const i={add:t=>e.post("/item",t),update:t=>e.put("/item",t),delete:t=>e.delete(`/item/${t}`),getById:t=>e.get(`/item/${t}`),page:t=>e.get("/item/page",{params:t}),listByCategoryId:t=>e.get(`/item/list/category/${t}`),listByTag:t=>e.get(`/item/list/tag/${t}`)};export{i};

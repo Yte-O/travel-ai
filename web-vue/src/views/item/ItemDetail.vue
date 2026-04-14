@@ -5,10 +5,11 @@
     </div>
 
     <div v-else-if="!item" class="error-container">
-      <el-result 
-        icon="error" 
+      <el-result
+        icon="error"
         title="未找到"
-        sub-title="未找到该景点信息">
+        sub-title="未找到该景点信息"
+      >
         <template #extra>
           <el-button type="primary" @click="goBack">返回</el-button>
         </template>
@@ -16,302 +17,127 @@
     </div>
 
     <template v-else>
-      <!-- 顶部导航条 -->
-      <div class="item-header">
-        <el-button @click="goBack" class="back-button">
-          <el-icon><ArrowLeft /></el-icon>
-          返回
-        </el-button>
-        <div class="item-actions">
-          <el-button type="primary" :icon="Share" @click="handleCopyLink" class="action-button">
-            分享
+      <section class="hero-header" :style="heroStyle">
+        <div class="hero-overlay"></div>
+
+        <div class="hero-topbar">
+          <el-button @click="goBack" class="hero-back-button" plain>
+            <el-icon><ArrowLeft /></el-icon>
+            返回
           </el-button>
-          <el-button 
-            type="success" 
-            @click="showReservationDialog" 
-            class="action-button"
-          >
-            预约
-          </el-button>
-        </div>
-      </div>
-      
-      <el-card class="item-card">
-        <div class="item-content">
-          <!-- 左侧 - 景点封面和下载区域 -->
-          <div class="item-left-panel">
-            <div class="item-cover-container">
-              <el-image 
-                v-if="item.coverUrl" 
-                :src="item.coverUrl" 
-                class="item-cover"
-                fit="cover"
-                :preview-src-list="[item.coverUrl]"
-                :initial-index="0"
-                :hide-on-click-modal="false"
-                preview-teleported
-              />
-              <div v-else class="no-image-placeholder">
-                <el-icon><Picture /></el-icon>
-                <span>暂无封面</span>
-              </div>
-            </div>
-            
-            <div class="item-download-section" v-if="item.fileUrl">
-              <el-button type="primary" @click="handleDownload" class="download-button">
-                <el-icon><Download /></el-icon>
-                下载附件
-              </el-button>
-            </div>
-            
-            <div class="item-interaction">
-              <LikeButton 
-                :itemId="item.id" 
-                v-model:isLiked="isLiked" 
-                v-model:likeCount="likeCount"
-                @like="onLike"
-                @unlike="onUnlike"
-                size="large"
-              />
-              <FavoriteButton
-                :itemId="item.id"
-                v-model:isFavorite="isFavorite"
-                @favorite="onFavorite"
-                @unfavorite="onUnfavorite"
-                size="large"
-              />
-            </div>
-          </div>
-          
-          <!-- 右侧 - 景点信息 -->
-          <div class="item-info">
-            <h1 class="item-title">{{ item.title }}</h1>
-            
-            <div class="item-meta">
-              <div class="meta-item">
-                <span class="meta-label">所属类别</span>
-                <el-tag size="large" effect="plain" class="category-tag">{{ item.category.name }}</el-tag>
-              </div>
-              
-              <div class="meta-item">
-                <span class="meta-label">发布者</span>
-                <span class="meta-value">{{ item.userRealName || '未知' }}</span>
-              </div>
-              
-              <div class="meta-item" v-if="getSpecValue('ticketPrice')">
-                <span class="meta-label">门票价格</span>
-                <el-tag 
-                  type="primary"
-                  size="large"
-                  effect="plain"
-                >
-                  {{ getSpecValue('ticketPrice') }}
-                </el-tag>
-              </div>
-              
-              <div class="meta-timestamps">
-                <div class="timestamp-item">
-                  <el-icon><Calendar /></el-icon>
-                  <span>创建于 {{ formatDate(item.createTime) }}</span>
-                </div>
-                <div class="timestamp-item">
-                  <el-icon><Timer /></el-icon>
-                  <span>更新于 {{ formatDate(item.updateTime) }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="item-description-section">
-              <h3 class="section-title">描述</h3>
-              <div class="item-description">
-                <p v-if="item.description">{{ item.description }}</p>
-                <p v-else class="no-data">暂无描述</p>
-              </div>
-            </div>
-            
-            <div class="item-tags-section">
-              <h3 class="section-title">标签</h3>
-              <div class="item-tags">
-                <el-tag 
-                  v-for="tag in (item as any).tagList || []" 
-                  :key="tag" 
-                  size="large" 
-                  effect="light"
-                  type="success" 
-                  class="tag" 
-                  round
-                >
-                  {{ tag }}
-                </el-tag>
-                <span v-if="!(item as any).tagList || (item as any).tagList.length === 0" class="no-data">暂无标签</span>
-              </div>
-            </div>
+
+          <div class="hero-actions">
+            <el-button :icon="Share" @click="handleCopyLink">分享</el-button>
+            <el-button type="primary" @click="showReservationDialog">预约</el-button>
+            <el-button v-if="item.fileUrl" :icon="Download" @click="handleDownload">附件</el-button>
           </div>
         </div>
-      </el-card>
-      
-      <!-- 景点信息卡片 -->
-      <el-card class="product-specs-card" v-if="item.extraData">
-        <template #header>
-          <div class="specs-header">
-            <el-icon class="specs-icon"><InfoFilled /></el-icon>
-            <span class="specs-title">景点信息</span>
+
+        <div class="hero-content">
+          <div class="hero-category">{{ item.category?.name || '未分类' }}</div>
+          <h1 class="hero-title">{{ item.title }}</h1>
+
+          <div class="hero-tags" v-if="(item as any).tagList?.length">
+            <span v-for="tag in (item as any).tagList" :key="tag" class="hero-tag">{{ tag }}</span>
           </div>
-        </template>
-        <div class="specs-content">
-          <div class="specs-grid">
-            <!-- 第一行：门票价格、开放时间、游玩时间、最佳季节 -->
-            <div class="specs-row">
-              <!-- 门票价格 -->
-              <div class="spec-item price-item" v-if="getSpecValue('ticketPrice')">
-                <div class="spec-label">
-                  <el-icon><Money /></el-icon>
-                  <span>门票价格</span>
-                </div>
-                <div class="spec-value price-value">
-                  {{ getSpecValue('ticketPrice') }}
-                </div>
-              </div>
-              
-              <!-- 开放时间 -->
-              <div class="spec-item" v-if="getSpecValue('openTime')">
-                <div class="spec-label">
-                  <el-icon><Clock /></el-icon>
-                  <span>开放时间</span>
-                </div>
-                <div class="spec-value">
-                  {{ getSpecValue('openTime') }}
-                </div>
-              </div>
-              
-              <!-- 游玩时间 -->
-              <div class="spec-item" v-if="getSpecValue('playTime')">
-                <div class="spec-label">
-                  <el-icon><Timer /></el-icon>
-                  <span>游玩时间</span>
-                </div>
-                <div class="spec-value">
-                  {{ getSpecValue('playTime') }}
-                </div>
-              </div>
-              
-              <!-- 最佳季节 -->
-              <div class="spec-item" v-if="getSpecValue('bestSeason')">
-                <div class="spec-label">
-                  <el-icon><Sunny /></el-icon>
-                  <span>最佳季节</span>
-                </div>
-                <div class="spec-value">
-                  {{ getSpecValue('bestSeason') }}
-                </div>
-              </div>
-            </div>
-            
-            <!-- 第二行：景点地址、交通信息、景点特色 -->
-            <div class="specs-row">
-              <!-- 景点地址 -->
-              <div class="spec-item" v-if="getSpecValue('address')">
-                <div class="spec-label">
-                  <el-icon><Location /></el-icon>
-                  <span>景点地址</span>
-                </div>
-                <div class="spec-value">
-                  {{ getSpecValue('address') }}
-                </div>
-              </div>
-              
-              <!-- 交通信息 -->
-              <div class="spec-item traffic-item" v-if="getSpecValue('traffic')">
-                <div class="spec-label">
-                  <el-icon><Van /></el-icon>
-                  <span>交通信息</span>
-                </div>
-                <div class="spec-value traffic-value">
-                  <el-tooltip 
-                    :content="getSpecValue('traffic')" 
-                    placement="top" 
-                    :disabled="!isTrafficLong()"
-                    :show-after="500"
-                  >
-                    <div class="traffic-text" :class="{ 'truncated': isTrafficLong() }">
-                      {{ getSpecValue('traffic') }}
-                    </div>
-                  </el-tooltip>
-                </div>
-              </div>
-              
-              <!-- 景点特色 -->
-              <div class="spec-item features-item" v-if="getFeatures().length > 0">
-                <div class="spec-label">
-                  <el-icon><Star /></el-icon>
-                  <span>景点特色</span>
-                </div>
-                <div class="spec-value features-value">
-                  <div class="features-tags">
-                    <el-tag 
-                      v-for="feature in getFeatures()" 
-                      :key="feature" 
-                      size="small" 
-                      effect="light"
-                      type="primary"
-                      class="feature-tag"
-                    >
-                      {{ feature }}
-                    </el-tag>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 其他规格信息 -->
-            <template v-for="(value, key) in getOtherSpecs()" :key="key">
-              <div class="spec-item">
-                <div class="spec-label">
-                  <el-icon><Document /></el-icon>
-                  <span>{{ formatKey(key) }}</span>
-                </div>
-                <div class="spec-value">
-                  <span v-if="Array.isArray(value)">{{ value.join(', ') }}</span>
-                  <span v-else-if="typeof value === 'object'">
-                    <el-popover placement="top" :width="300" trigger="hover">
-                      <template #reference>
-                        <el-button type="text" size="small">查看详情</el-button>
-                      </template>
-                      <pre class="json-preview">{{ JSON.stringify(value, null, 2) }}</pre>
-                    </el-popover>
-                  </span>
-                  <span v-else>{{ value }}</span>
-                </div>
-              </div>
-            </template>
+
+          <div class="hero-meta">
+            <span>上传者 {{ item.userRealName || '未知' }}</span>
+            <span>更新于 {{ formatDate(item.updateTime) }}</span>
           </div>
         </div>
-      </el-card>
-      
-      <!-- 地图位置 -->
-      <el-card class="map-card" v-if="item && hasLocation()">
-        <template #header>
-          <div class="map-header">
-            <el-icon><MapLocation /></el-icon>
-            <span>景点位置</span>
+      </section>
+
+      <section class="reading-layout">
+        <main class="reading-left">
+          <blockquote class="lead-quote">
+            {{ item.description || '这是一处值得驻足停留的目的地。' }}
+          </blockquote>
+
+          <div class="interaction-bar">
+            <LikeButton
+              :itemId="item.id"
+              v-model:isLiked="isLiked"
+              v-model:likeCount="likeCount"
+              @like="onLike"
+              @unlike="onUnlike"
+              size="large"
+            />
+            <FavoriteButton
+              :itemId="item.id"
+              v-model:isFavorite="isFavorite"
+              @favorite="onFavorite"
+              @unfavorite="onUnfavorite"
+              size="large"
+            />
           </div>
-        </template>
-        <MapViewer 
-          :latitude="getLocationData().latitude"
-          :longitude="getLocationData().longitude"
-          height="400px"
-        />
-      </el-card>
-      
-      <!-- 评论区域 -->
-      <el-card class="comments-card" v-if="item">
-        <template #header>
-          <div class="comments-header">
-            <h2 class="comments-title">评论（{{ commentCount }}）</h2>
+
+          <section class="metrics-matrix">
+            <div class="metric-block metric-price" v-if="getSpecValue('ticketPrice')">
+              <div class="metric-label">
+                <el-icon><Money /></el-icon>
+                <span>门票价格</span>
+              </div>
+              <div class="metric-value">{{ getSpecValue('ticketPrice') }}</div>
+            </div>
+
+            <div class="metric-block" v-if="getSpecValue('openTime')">
+              <div class="metric-label">
+                <el-icon><Clock /></el-icon>
+                <span>开放时间</span>
+              </div>
+              <div class="metric-value metric-plain">{{ getSpecValue('openTime') }}</div>
+            </div>
+
+            <div class="metric-block" v-if="getSpecValue('traffic')">
+              <div class="metric-label">
+                <el-icon><Van /></el-icon>
+                <span>交通信息</span>
+              </div>
+              <div class="metric-value metric-plain">{{ getSpecValue('traffic') }}</div>
+            </div>
+
+            <div class="metric-block" v-if="getFeatures().length">
+              <div class="metric-label">
+                <el-icon><Star /></el-icon>
+                <span>景点特色</span>
+              </div>
+              <div class="feature-cloud">
+                <span v-for="feature in getFeatures()" :key="feature" class="feature-pill">{{ feature }}</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="comments-section">
+            <div class="comments-title-row">
+              <h2>评论 {{ commentCount }}</h2>
+            </div>
+            <CommentList :item-id="Number(item.id)" @update-count="updateCommentCount" />
+          </section>
+        </main>
+
+        <aside class="reading-right">
+          <div class="sticky-location">
+            <div class="location-title">
+              <el-icon><MapLocation /></el-icon>
+              <span>位置与导航</span>
+            </div>
+
+            <p class="location-address">{{ getSpecValue('address') || '暂无地址信息' }}</p>
+
+            <div class="location-coord" v-if="hasLocation()">
+              经纬度 {{ getLocationData().latitude }}, {{ getLocationData().longitude }}
+            </div>
+
+            <MapViewer
+              v-if="hasLocation()"
+              :latitude="getLocationData().latitude"
+              :longitude="getLocationData().longitude"
+              height="360px"
+            />
           </div>
-        </template>
-        <CommentList :item-id="Number(item.id)" @update-count="updateCommentCount" />
-      </el-card>
+        </aside>
+      </section>
     </template>
 
     <!-- 预约表单对话框 -->
@@ -429,13 +255,11 @@
       </template>
     </el-dialog>
 
-    <!-- 全局图片查看器容器，确保预览组件能够正确显示 -->
-    <div class="image-viewer-container"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { itemApi } from '@/api/item'
@@ -443,7 +267,7 @@ import { likeApi } from '@/api/like'
 import { favoriteApi } from '@/api/favorite'
 import { addUserAction, type UserActionData } from '@/api/userAction'
 import type { ItemVO, ItemUpdateDTO } from '@/types/item'
-import { ArrowLeft, Download, Share, Picture, Calendar, Timer, InfoFilled, Money, Star, Clock, Location, Sunny, Van, MapLocation } from '@element-plus/icons-vue'
+import { ArrowLeft, Download, Share, Money, Star, Clock, Van, MapLocation } from '@element-plus/icons-vue'
 import LikeButton from '@/components/LikeButton.vue'
 import FavoriteButton from '@/components/FavoriteButton.vue'
 import CommentList from '@/components/CommentList.vue'
@@ -457,6 +281,20 @@ const isLiked = ref(false)
 const likeCount = ref(0)
 const isFavorite = ref(false)
 const commentCount = ref(0)
+
+const heroStyle = computed(() => {
+  const cover = item.value?.coverUrl
+  if (!cover) {
+    return {
+      background: 'linear-gradient(120deg, #4b5563 0%, #1f2937 100%)'
+    }
+  }
+  return {
+    backgroundImage: `linear-gradient(rgba(6, 12, 22, 0.42), rgba(6, 12, 22, 0.58)), url(${cover})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  }
+})
 
 
 
@@ -524,27 +362,6 @@ const fetchItemDetail = async () => {
   }
 }
 
-// 解析额外数据JSON
-const parseExtraData = (extraDataStr: string): Record<string, any> => {
-  if (!extraDataStr) return {}
-  try {
-    return JSON.parse(extraDataStr)
-  } catch (e) {
-    console.error('解析额外数据失败:', e)
-    return { raw: extraDataStr }
-  }
-}
-
-// 格式化属性名称
-const formatKey = (key: string): string => {
-  // 将驼峰命名或下划线命名转换为空格分隔的单词，并首字母大写
-  return key
-    .replace(/([A-Z])/g, ' $1') // 在大写字母前添加空格
-    .replace(/_/g, ' ') // 将下划线替换为空格
-    .replace(/^\s+/, '') // 移除开头的空格
-    .replace(/^./, (str: string) => str.toUpperCase()) // 首字母大写
-}
-
 // 添加浏览记录
 const addViewRecord = async (itemId: number): Promise<void> => {
   try {
@@ -585,11 +402,6 @@ const getSpecValue = (key: string): any => {
   }
 }
 
-// 格式化价格
-const formatPrice = (price: number): string => {
-  return price.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
 // 获取景点特色数组
 const getFeatures = (): string[] => {
   const features = getSpecValue('features')
@@ -597,32 +409,6 @@ const getFeatures = (): string[] => {
     return features
   }
   return []
-}
-
-// 判断交通信息是否过长
-const isTrafficLong = (): boolean => {
-  const traffic = getSpecValue('traffic')
-  return traffic && traffic.length > 80
-}
-
-// 获取其他规格信息（排除已单独显示的字段）
-const getOtherSpecs = (): Record<string, any> => {
-  if (!item.value || !item.value.extraData) return {}
-  try {
-    const extraData = JSON.parse(item.value.extraData)
-    const excludeKeys = ['ticketPrice', 'openTime', 'address', 'traffic', 'bestSeason', 'playTime', 'features', 'latitude', 'longitude']
-    const otherSpecs: Record<string, any> = {}
-    
-    Object.keys(extraData).forEach(key => {
-      if (!excludeKeys.includes(key)) {
-        otherSpecs[key] = extraData[key]
-      }
-    })
-    
-    return otherSpecs
-  } catch (e) {
-    return {}
-  }
 }
 
 // 检查是否有位置信息
@@ -852,684 +638,220 @@ onMounted(() => {
 <style scoped>
 .item-detail {
   width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 10px;
+  min-height: 100%;
+  background: #f9fafb;
 }
 
-.item-header {
+.loading-container,
+.error-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 0 10px;
+  justify-content: center;
+  padding: 72px 0;
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.item-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.item-card {
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  background-color: #fff;
-  margin-bottom: 30px;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-.item-card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-}
-
-.item-content {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-
-.item-left-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.item-cover-container {
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: #f5f7fa;
+.hero-header {
   position: relative;
-}
-
-.item-cover {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.item-cover:hover {
-  transform: scale(1.05);
-}
-
-.item-download-section {
-  display: flex;
-  justify-content: center;
-}
-
-.download-button {
-  width: 100%;
-  border-radius: 8px;
-  height: 44px;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.item-interaction {
-  display: flex;
-  justify-content: space-evenly;
-  margin-top: 10px;
-}
-
-.item-info {
-  padding: 10px;
-}
-
-.item-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 20px;
-  line-height: 1.3;
-}
-
-.item-meta {
+  height: 40vh;
+  min-height: 320px;
+  padding: 24px clamp(20px, 5vw, 72px);
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.meta-label {
-  font-size: 14px;
-  color: #909399;
-  min-width: 70px;
-}
-
-.meta-value {
-  font-size: 15px;
-  color: #606266;
-}
-
-.category-tag {
-  font-size: 15px;
-  padding: 6px 12px;
-}
-
-.meta-timestamps {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.timestamp-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #909399;
-  font-size: 14px;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 15px;
-  border-left: 4px solid #409eff;
-  padding-left: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.section-title::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 18px;
-  background-color: #409eff;
-  margin-right: 10px;
-  border-radius: 2px;
-  display: none;
-}
-
-.item-description-section {
-  margin-bottom: 30px;
-}
-
-.item-description {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #606266;
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  white-space: pre-wrap;
-}
-
-.item-tags-section {
-  margin-bottom: 30px;
-}
-
-.item-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.tag {
-  padding: 6px 14px;
-  font-size: 14px;
-}
-
-.no-data {
-  color: #909399;
-  font-style: italic;
-}
-
-.no-image-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #f5f7fa;
-  color: #909399;
-  font-size: 16px;
-}
-
-.no-image-placeholder .el-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-  color: #c0c4cc;
-}
-
-.loading-container, .error-container {
-  display: flex;
-  justify-content: center;
-  padding: 60px 0;
-}
-
-/* 响应式布局 */
-@media (min-width: 768px) {
-  .item-content {
-    flex-direction: row;
-    gap: 30px;
-    padding: 20px;
-  }
-  
-  .item-left-panel {
-    width: 40%;
-    margin-bottom: 0;
-  }
-  
-  .item-cover-container {
-    height: 400px;
-  }
-  
-  .item-info {
-    width: 60%;
-    padding: 0;
-  }
-  
-  .item-title {
-    font-size: 28px;
-  }
-  
-  .meta-timestamps {
-    flex-direction: row;
-    gap: 30px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .item-detail {
-    padding: 20px;
-  }
-  
-  .item-content {
-    padding: 30px;
-  }
-  
-  .item-cover-container {
-    height: 450px;
-  }
-  
-  .item-title {
-    font-size: 32px;
-  }
-}
-
-/* 图片预览组件样式修复 */
-.image-viewer-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  z-index: 2009;
-  pointer-events: none;
-}
-
-:deep(.el-image-viewer__mask) {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  opacity: 0.5;
-  background: #000;
-  z-index: 2010;
-}
-
-:deep(.el-image-viewer__wrapper) {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2011;
-}
-
-:deep(.el-image-viewer__close) {
-  z-index: 2012;
-}
-
-:deep(.el-image-viewer__canvas) {
-  z-index: 2011;
-}
-
-:deep(.el-image-viewer__actions) {
-  z-index: 2012;
-}
-
-:deep(.el-image-viewer__prev), 
-:deep(.el-image-viewer__next) {
-  z-index: 2012;
-}
-
-:deep(.el-image-viewer__btn) {
-  z-index: 2012;
-}
-
-.comments-card {
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  background-color: #fff;
-  margin-bottom: 30px;
-}
-
-.comments-header {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
+  color: #ffffff;
+  background-repeat: no-repeat;
 }
 
-.comments-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-  margin: 0;
-}
-
-/* 景点信息卡片样式 */
-.product-specs-card {
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  background-color: #fff;
-  margin-bottom: 30px;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-.product-specs-card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-}
-
-.specs-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.specs-icon {
-  color: #409eff;
-  font-size: 18px;
-}
-
-.specs-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.specs-content {
-  padding: 0;
-}
-
-.specs-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px;
-}
-
-.specs-row {
-  display: grid;
-  gap: 20px;
-}
-
-/* 第一行：4列平均分布 */
-.specs-row:nth-child(1) {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-/* 第二行：3列平均分布 */
-.specs-row:nth-child(2) {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-/* 其他行：自适应列数 */
-.specs-row:nth-child(n+3) {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-
-.spec-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 10px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.spec-item::before {
-  content: '';
+.hero-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(to bottom, #409eff, #67c23a);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 8, 16, 0.12) 0%, rgba(5, 8, 16, 0.55) 100%);
 }
 
-.spec-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: #409eff;
+.hero-topbar,
+.hero-content {
+  position: relative;
+  z-index: 1;
 }
 
-.spec-item:hover::before {
-  opacity: 1;
+.hero-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.spec-label {
+.hero-back-button {
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  color: #ffffff;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.hero-category {
+  display: inline-flex;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+.hero-title {
+  margin: 0;
+  font-size: clamp(30px, 6vw, 56px);
+  line-height: 1.08;
+  font-weight: 800;
+}
+
+.hero-tags {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 13px;
+}
+
+.hero-meta {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+}
+
+.reading-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px clamp(20px, 5vw, 72px) 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 38px;
+}
+
+.lead-quote {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: clamp(22px, 2.8vw, 34px);
+  line-height: 1.45;
+  font-weight: 650;
+  color: #111827;
+}
+
+.interaction-bar {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.metrics-matrix {
+  margin-top: 34px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-block {
+  background: #ffffff;
+  padding: 18px 20px;
+  border-radius: 18px;
+}
+
+.metric-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 500;
-  color: #606266;
+  color: #6b7280;
   font-size: 14px;
 }
 
-.spec-label .el-icon {
-  color: #909399;
-  font-size: 16px;
-  transition: color 0.3s ease;
+.metric-value {
+  margin-top: 10px;
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1;
+  font-weight: 800;
+  color: #111827;
 }
 
-.spec-item:hover .spec-label .el-icon {
-  color: #409eff;
-}
-
-.spec-value {
-  font-weight: 600;
-  color: #303133;
-  font-size: 14px;
-  text-align: right;
-  max-width: 60%;
-  word-break: break-word;
-}
-
-/* 特殊样式 */
-.price-item {
-  background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
-  border-color: #f56c6c;
-}
-
-.price-item::before {
-  background: linear-gradient(to bottom, #f56c6c, #e6a23c);
-}
-
-.price-value {
-  color: #f56c6c;
+.metric-plain {
   font-size: 18px;
-  font-weight: 700;
-}
-
-.stock-item .spec-value .el-tag {
+  line-height: 1.45;
   font-weight: 600;
+  color: #1f2937;
 }
 
-.sales-value {
-  color: #67c23a;
-  font-weight: 700;
+.metric-price .metric-value {
+  color: #d9480f;
 }
 
-/* 规格参数样式 */
-.specs-item {
-  grid-column: span 2; /* 占据两列宽度 */
-  min-width: 400px; /* 最小宽度确保内容显示 */
-  flex-direction: row !important; /* 强制水平排列 */
-  align-items: center !important; /* 垂直居中对齐 */
-}
-
-.specs-item .spec-label {
-  flex-direction: row !important; /* 确保标签也是水平排列 */
-  align-items: center !important;
-  white-space: nowrap; /* 防止标签换行 */
-  margin-right: 20px; /* 增加标签和内容之间的间距 */
-  flex-shrink: 0; /* 防止标签被压缩 */
-}
-
-.specs-value {
-  text-align: left;
-  flex: 1; /* 占据剩余空间 */
-  min-width: 0; /* 允许内容区域收缩 */
-}
-
-.specs-text {
-  line-height: 1.6;
-  color: #606266;
-  font-size: 14px;
-  white-space: nowrap; /* 始终单行显示 */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%; /* 确保省略号有足够空间显示 */
-  display: block; /* 确保为块级元素 */
-}
-
-.specs-text.truncated {
-  cursor: help;
-}
-
-/* 景点特色标签样式 */
-.features-value {
-  width: 100%;
-}
-
-.features-tags {
+.feature-cloud {
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
-.feature-tag {
-  margin: 0;
+.feature-pill {
+  font-size: 13px;
+  color: #1f2937;
+  background: #eef2f7;
+  padding: 6px 10px;
+  border-radius: 999px;
 }
 
-/* 交通信息样式 */
-.traffic-item {
-  /* 交通信息在第二行与其他元素平等显示 */
+.comments-section {
+  margin-top: 36px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 22px;
 }
 
-.traffic-value {
-  width: 100%;
+.comments-title-row h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
 }
 
-.traffic-text {
-  line-height: 1.5;
-  color: #666;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-word;
-  width: 100%;
-  display: block;
+.sticky-location {
+  position: sticky;
+  top: 24px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 22px;
 }
 
-.traffic-text.truncated {
-  cursor: help;
+.location-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
 }
 
-/* JSON预览样式 */
-.json-preview {
-  background-color: #f5f7fa;
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 12px;
-  color: #606266;
-  max-height: 200px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+.location-address {
+  margin: 14px 0 8px;
+  color: #374151;
+  line-height: 1.65;
 }
 
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  /* 第一行在中等屏幕上变为2列 */
-  .specs-row:nth-child(1) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* 第二行在中等屏幕上保持3列 */
-  .specs-row:nth-child(2) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  /* 第二行在较小屏幕上变为2列 */
-  .specs-row:nth-child(2) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .specs-grid {
-    gap: 15px;
-    padding: 15px;
-  }
-  
-  .specs-row,
-  .specs-row:nth-child(1),
-  .specs-row:nth-child(2),
-  .specs-row:nth-child(n+3) {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  
-  .spec-item {
-    padding: 12px 16px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .spec-value {
-    text-align: left;
-    max-width: 100%;
-  }
-  
-  .price-value {
-    font-size: 16px;
-  }
-  
-  /* 移动端规格参数样式调整 */
-  .specs-item {
-    padding: 16px;
-    grid-column: 1 / -1; /* 移动端占满整行 */
-    min-width: auto; /* 移动端取消最小宽度限制 */
-    flex-direction: row !important; /* 移动端也保持水平排列 */
-    align-items: center !important;
-  }
-  
-  .specs-item .spec-label {
-    flex-direction: row !important; /* 移动端标签也保持水平排列 */
-    align-items: center !important;
-    white-space: nowrap;
-    margin-right: 15px; /* 移动端适当减少间距 */
-    flex-shrink: 0; /* 防止标签被压缩 */
-  }
-  
-  .specs-text {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 480px) {
-  .specs-grid {
-    padding: 10px;
-  }
-  
-  .spec-item {
-    padding: 10px 12px;
-  }
+.location-coord {
+  margin-bottom: 14px;
+  color: #9ca3af;
+  font-size: 13px;
 }
 
 /* 预约对话框样式 */
@@ -1637,22 +959,36 @@ onMounted(() => {
   }
 }
 
-/* 地图卡片样式 */
-.map-card {
-  margin-bottom: 20px;
+@media (max-width: 1200px) {
+  .reading-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sticky-location {
+    position: static;
+  }
 }
 
-.map-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-}
+@media (max-width: 768px) {
+  .hero-header {
+    min-height: 280px;
+    height: 38vh;
+  }
 
-.map-header .el-icon {
-  color: #409eff;
-  font-size: 18px;
+  .hero-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .metrics-matrix {
+    grid-template-columns: 1fr;
+  }
+
+  .comments-section,
+  .sticky-location {
+    padding: 16px;
+    border-radius: 16px;
+  }
 }
 </style> 

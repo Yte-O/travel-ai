@@ -1,0 +1,1 @@
+import{r as t}from"./index-CEdPHzKp.js";const o={add:e=>t.post("/favorite",e),remove:e=>t.delete(`/favorite/${e}`),status:e=>t.get(`/favorite/status/${e}`),getUserFavoriteItemIds:()=>t.get("/favorite/user/items"),page:(e=1,r=10)=>t.get("/favorite/user/page",{params:{current:e,size:r}}),getItemFavoriteCount:e=>t.get(`/favorite/count/${e}`)};export{o as f};
