@@ -2,7 +2,7 @@
 import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
 import { ElMessage, ElButton, ElMessageBox, ElSwitch, ElTooltip } from 'element-plus'
 import { Plus, ArrowLeft } from '@element-plus/icons-vue'
-import type { ChatMessage, ChatSession } from '@/types/chat'
+import type { ChatMessage, ChatSession, ItineraryPlan } from '@/types/chat'
 import type { RecommendedItemVO } from '@/types/item'
 import { chatApi, llmApi } from '@/api/chat'
 import { recommendationApi } from '@/api/recommendation'
@@ -10,6 +10,7 @@ import { useUserStore } from '@/stores/user'
 import ChatMessageComponent from '@/components/chat/ChatMessage.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ModelSelector from '@/components/chat/ModelSelector.vue'
+import TravelRoutePlanner from '@/components/chat/TravelRoutePlanner.vue'
 
 // 组件属性
 const props = defineProps<{
@@ -38,6 +39,9 @@ const userStore = useUserStore()
 const recommendationMessage = ref('')
 const isHistoryItems = ref(false)
 const enableGraphRAG = ref(true)
+const itineraryPlan = ref<ItineraryPlan | null>(null)
+const showItinerary = ref(false)
+const itineraryLoading = ref(false)
 
 // 加载会话信息
 const loadSession = async () => {
@@ -429,6 +433,30 @@ const goToItemDetail = (itemId: number) => {
   window.open(`/user/item/${itemId}`, '_blank')
 }
 
+// 生成结构化路书
+const generateItinerary = async () => {
+  if (!props.sessionId || loading.value) return
+  if (messages.value.length < 2) {
+    ElMessage.warning('请先进行几轮对话，再生成路书')
+    return
+  }
+
+  try {
+    itineraryLoading.value = true
+    const plan = await llmApi.generateItinerary(selectedModel.value, messages.value)
+    itineraryPlan.value = plan
+    showItinerary.value = true
+    ElMessage.success('路书生成成功')
+    await nextTick()
+    scrollToBottom()
+  } catch (e) {
+    console.error('生成路书失败:', e)
+    ElMessage.error('生成路书失败，请调整对话内容后重试')
+  } finally {
+    itineraryLoading.value = false
+  }
+}
+
 // 返回会话列表
 const goBack = () => {
   emits('back')
@@ -453,6 +481,8 @@ const clearMessages = async () => {
     loading.value = true
     await chatApi.clearSessionMessages(props.sessionId)
     messages.value = []
+    itineraryPlan.value = null
+    showItinerary.value = false
     ElMessage.success('聊天记录已清空')
     
     // 通知父组件清除消息完成
@@ -477,6 +507,8 @@ const scrollToBottom = () => {
 // 监听会话ID变化
 watch(() => props.sessionId, async (newId, oldId) => {
   if (newId && newId !== oldId) {
+    itineraryPlan.value = null
+    showItinerary.value = false
     await loadSession();
     await loadMessages();
   }
@@ -531,6 +563,15 @@ onUnmounted(() => {
           />
         </div>
         <ElButton type="danger" @click="clearMessages" plain size="small" :loading="loading">清空记录</ElButton>
+        <ElButton
+          type="primary"
+          plain
+          size="small"
+          :loading="itineraryLoading"
+          @click="generateItinerary"
+        >
+          生成路书
+        </ElButton>
         <ElButton type="primary" @click="createNewSession" :icon="Plus" circle />
       </div>
     </div>
@@ -597,6 +638,7 @@ onUnmounted(() => {
             <el-skeleton :rows="3" animated />
           </div>
         </div>
+
       </template>
       <div v-else class="empty-message">
         <div class="empty-chat-icon">
@@ -608,8 +650,31 @@ onUnmounted(() => {
         </p>
       </div>
     </div>
-    
-    <div class="no-session" v-else>
+
+    <el-drawer
+      v-model="showItinerary"
+      direction="rtl"
+      size="50%"
+      :with-header="false"
+      class="itinerary-drawer"
+      append-to-body
+    >
+      <div class="itinerary-drawer-content">
+        <div class="itinerary-drawer-header">
+          <h3>AI 路书面板</h3>
+          <el-button link type="primary" @click="showItinerary = false">关闭</el-button>
+        </div>
+
+        <TravelRoutePlanner
+          v-if="itineraryPlan"
+          :plan="itineraryPlan"
+          :loading="itineraryLoading"
+        />
+        <el-empty v-else description="暂无路书，请先点击“生成路书”" :image-size="90" />
+      </div>
+    </el-drawer>
+
+    <div class="no-session" v-if="!sessionId">
       <div class="welcome-icon">
         <i class="el-icon-s-promotion"></i>
       </div>
@@ -846,6 +911,33 @@ onUnmounted(() => {
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
 }
 
+.itinerary-drawer-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.itinerary-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.itinerary-drawer-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+:deep(.itinerary-drawer .el-drawer__body) {
+  padding: 0;
+}
+
 .input-tip {
   margin-bottom: 8px;
   display: flex;
@@ -898,6 +990,10 @@ onUnmounted(() => {
   
   .recommendation-items {
     grid-template-columns: 1fr;
+  }
+
+  :deep(.itinerary-drawer) {
+    width: 92% !important;
   }
 }
 

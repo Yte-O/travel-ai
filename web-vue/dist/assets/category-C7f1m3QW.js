@@ -1,0 +1,1 @@
+import{r as t}from"./index-Ca_R6wBc.js";import"./file_request-CH9WEDOj.js";const g={add:e=>t.post("/category",e),update:e=>t.put("/category",e),delete:e=>t.delete(`/category/${e}`),getById:e=>t.get(`/category/${e}`),list:()=>t.get("/category/list"),page:e=>t.get("/category/page",{params:e})};export{g as c};

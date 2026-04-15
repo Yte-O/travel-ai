@@ -1,6 +1,15 @@
 import { request } from './request'
 import { algoRequest } from './algo_request'
-import type { ChatSession, ChatMessage, ChatSessionCreateDTO, ChatSessionUpdateDTO, ChatMessageSendDTO, ChatMessageQueryDTO, ChatModel } from '@/types/chat'
+import type {
+  ChatSession,
+  ChatMessage,
+  ChatSessionCreateDTO,
+  ChatSessionUpdateDTO,
+  ChatMessageSendDTO,
+  ChatMessageQueryDTO,
+  ChatModel,
+  ItineraryPlan
+} from '@/types/chat'
 
 // 后端API - 会话相关
 export const chatApi = {
@@ -84,6 +93,17 @@ export const llmApi = {
         message: string;
       }
     }>('/llm/chat-with-graph-rag', {
+      model,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+    })
+  },
+
+  // 从对话生成结构化路书
+  generateItinerary(model: string, messages: ChatMessage[]) {
+    return algoRequest.post<ItineraryPlan>('/llm/itinerary-plan', {
       model,
       messages: messages.map(msg => ({
         role: msg.role,

@@ -25,6 +25,7 @@ declare module 'vue' {
     ElDescriptionsItem: typeof import('element-plus/es')['ElDescriptionsItem']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDivider: typeof import('element-plus/es')['ElDivider']
+    ElDrawer: typeof import('element-plus/es')['ElDrawer']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
@@ -63,6 +64,7 @@ declare module 'vue' {
     Pagination: typeof import('./src/components/Pagination/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TravelRoutePlanner: typeof import('./src/components/chat/TravelRoutePlanner.vue')['default']
     UserLayout: typeof import('./src/components/UserLayout.vue')['default']
     UserProfileComponent: typeof import('./src/components/user/UserProfileComponent.vue')['default']
   }

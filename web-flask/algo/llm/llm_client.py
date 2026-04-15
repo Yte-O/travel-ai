@@ -2,6 +2,7 @@
 LLM客户端
 """
 import json
+import re
 import requests
 from typing import Dict, Any, List, Optional
 from algo.llm.config import MODEL_CONFIGS, DEFAULT_MODEL
@@ -28,6 +29,19 @@ class LLMClient:
             'Authorization': f'Bearer {self.config["api_key"]}',
             'Content-Type': 'application/json'
         }
+
+    def _chat_completion(self, messages: List[Dict], max_tokens: Optional[int] = None, temperature: Optional[float] = None) -> str:
+        """统一的对话请求封装"""
+        data = {
+            'model': self.config['model'],
+            'messages': messages,
+            'max_tokens': max_tokens if max_tokens is not None else self.config['max_tokens'],
+            'temperature': temperature if temperature is not None else self.config['temperature'],
+        }
+
+        response = requests.post(self.config['api_url'], json=data, headers=self._make_headers())
+        result = response.json()
+        return result['choices'][0]['message']['content']
     
     def chat(self, messages: List[Dict]) -> str:
         """非流式聊天接口
@@ -55,16 +69,7 @@ class LLMClient:
         # 将系统消息添加到消息列表的开头
         full_messages = [system_message] + messages
         
-        data = {
-            'model': self.config['model'],
-            'messages': full_messages,
-            'max_tokens': self.config['max_tokens'],
-            'temperature': self.config['temperature'],
-        }
-        
-        response = requests.post(self.config['api_url'], json=data, headers=self._make_headers())
-        result = response.json()
-        return result['choices'][0]['message']['content']
+        return self._chat_completion(full_messages)
         
     def extract_keywords(self, messages: List[Dict], query: str = "给我推荐一些") -> List[str]:
         """从对话历史中提取关键词
@@ -120,15 +125,7 @@ class LLMClient:
         }
         
         # 调用LLM提取关键词
-        data = {
-            'model': self.config['model'],
-            'messages': [system_message, user_message],
-            'max_tokens': 100
-        }
-        
-        response = requests.post(self.config['api_url'], json=data, headers=self._make_headers())
-        result = response.json()
-        keywords_text = result['choices'][0]['message']['content']
+        keywords_text = self._chat_completion([system_message, user_message], max_tokens=100, temperature=0.2)
         
         # 处理关键词，去除多余内容
         if not keywords_text or keywords_text.strip() == "":
@@ -180,16 +177,93 @@ class LLMClient:
         full_messages = [system_message] + messages
         
         # 调用LLM生成回复
-        data = {
-            'model': self.config['model'],
-            'messages': full_messages,
-            'max_tokens': self.config['max_tokens'],
-            'temperature': self.config['temperature'],
+        return self._chat_completion(full_messages)
+
+    def extract_trip_intent(self, messages: List[Dict]) -> Dict[str, Any]:
+        """从对话中提取行程意图，返回稳定JSON结构"""
+        system_message = {
+            "role": "system",
+            "content": """你是旅行意图提取器。请从对话中提取行程规划参数，只输出JSON，不要输出任何额外文字。
+
+JSON结构必须是：
+{
+  "city": "城市名，无法确定时为空字符串",
+  "days": 1,
+  "keywords": ["景点或偏好关键词"],
+  "travel_mode": "driving|walking|cycling",
+  "pace": "relaxed|normal|intensive"
+}
+
+规则：
+1. days必须在1到10之间，无法判断默认2。
+2. keywords提取3到8个，和旅游相关。
+3. travel_mode无法判断默认walking。
+4. pace无法判断默认normal。"""
         }
-        
-        response = requests.post(self.config['api_url'], json=data, headers=self._make_headers())
-        result = response.json()
-        return result['choices'][0]['message']['content']
+
+        user_lines = []
+        for msg in messages[-20:]:
+            role = msg.get('role', 'user')
+            content = msg.get('content', '')
+            user_lines.append(f"{role}: {content}")
+
+        user_message = {
+            "role": "user",
+            "content": "请提取以下对话中的行程参数：\n" + "\n".join(user_lines)
+        }
+
+        raw = self._chat_completion([system_message, user_message], max_tokens=300, temperature=0.1)
+
+        default_result = {
+            "city": "",
+            "days": 2,
+            "keywords": [],
+            "travel_mode": "walking",
+            "pace": "normal"
+        }
+
+        try:
+            start = raw.find('{')
+            end = raw.rfind('}')
+            if start != -1 and end != -1 and end > start:
+                payload = raw[start:end + 1]
+            else:
+                payload = raw
+
+            parsed = json.loads(payload)
+
+            city = str(parsed.get('city', '')).strip()
+            days = parsed.get('days', 2)
+            try:
+                days = int(days)
+            except Exception:
+                days = 2
+            days = max(1, min(10, days))
+
+            keywords = parsed.get('keywords', [])
+            if isinstance(keywords, str):
+                keywords = [k.strip() for k in re.split(r'[,，、\\s]+', keywords) if k.strip()]
+            if not isinstance(keywords, list):
+                keywords = []
+            keywords = [str(k).strip() for k in keywords if str(k).strip()]
+
+            travel_mode = str(parsed.get('travel_mode', 'walking')).strip().lower()
+            if travel_mode not in ('driving', 'walking', 'cycling'):
+                travel_mode = 'walking'
+
+            pace = str(parsed.get('pace', 'normal')).strip().lower()
+            if pace not in ('relaxed', 'normal', 'intensive'):
+                pace = 'normal'
+
+            return {
+                "city": city,
+                "days": days,
+                "keywords": keywords[:8],
+                "travel_mode": travel_mode,
+                "pace": pace
+            }
+        except Exception:
+            return default_result
     
     def _format_graph_context(self, graph_context: str) -> str:
         """格式化图数据库上下文信息

@@ -51,3 +51,47 @@ export interface ChatMessageSendDTO {
 export interface ChatMessageQueryDTO {
   sessionId: number;
 } 
+
+// 行程规划数据结构
+export interface ItineraryTransport {
+  mode: 'driving' | 'walking' | 'cycling' | string;
+  distanceKm: number;
+  durationMinutes: number;
+  polyline: number[][];
+}
+
+export interface ItineraryItem {
+  name: string;
+  address?: string;
+  adname?: string;
+  location: [number, number] | number[];
+  startTime: string;
+  endTime: string;
+  stayMinutes: number;
+  tips?: string;
+  transportFromPrev?: ItineraryTransport;
+}
+
+export interface ItineraryDay {
+  day: number;
+  theme: string;
+  summary?: string;
+  items: ItineraryItem[];
+}
+
+export interface ItineraryRouteSegment extends ItineraryTransport {
+  day: number;
+  from: string;
+  to: string;
+}
+
+export interface ItineraryPlan {
+  title: string;
+  city?: string;
+  days: ItineraryDay[];
+  keywords?: string[];
+  travelMode?: string;
+  pace?: string;
+  routeSegments?: ItineraryRouteSegment[];
+  generatedAt?: string;
+}
