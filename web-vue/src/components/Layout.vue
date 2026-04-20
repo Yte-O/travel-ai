@@ -42,16 +42,6 @@
     </header>
 
     <section class="workspace-grid">
-      <aside class="context-panel glass-card">
-        <h3>{{ route.meta.title || '管理控制台' }}</h3>
-        <p>在一个面板里联动内容治理、图谱运维和用户行为洞察。</p>
-        <div class="quick-actions">
-          <el-button class="quick-action-btn" size="small" type="primary" plain @click="router.push('/admin/users')">用户</el-button>
-          <el-button class="quick-action-btn" size="small" type="primary" plain @click="router.push('/admin/items')">景点</el-button>
-          <el-button class="quick-action-btn" size="small" type="primary" plain @click="router.push('/admin/kgm')">图谱</el-button>
-        </div>
-      </aside>
-
       <main class="admin-content">
         <router-view v-slot="{ Component }">
           <transition name="route-fade" mode="out-in">
@@ -108,6 +98,7 @@ const handleCommand = (command: string) => {
   min-height: 100vh;
   overflow-x: hidden;
   padding: 14px;
+  background: #E0FFFF; /* 淡青色背景 */
 }
 
 .ambient {
@@ -218,47 +209,9 @@ const handleCommand = (command: string) => {
 .workspace-grid {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: start;
-}
-
-.context-panel {
-  border-radius: 20px;
-  border: 1px solid rgba(20, 32, 20, 0.08);
-  padding: 16px;
-  min-height: 180px;
-  position: relative;
-  top: 0;
-  align-self: start;
-}
-
-.context-panel h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.context-panel p {
-  margin: 8px 0 0;
-  font-size: 13px;
-  color: #5f6f5f;
-  line-height: 1.5;
-}
-
-.quick-actions {
-  display: grid;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.quick-action-btn {
-  width: 100%;
-  margin-left: 0;
-  justify-content: center;
-}
-
-.quick-action-btn + .quick-action-btn {
-  margin-left: 0;
 }
 
 .admin-content {

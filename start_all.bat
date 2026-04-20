@@ -5,19 +5,19 @@ echo    一键启动旅行AI项目
 echo ==============================
 
 :: 启动前端 Vue
-cd /d C:\Users\P\travel-ai\web-vue
+cd /d C:\Users\20201\Desktop\travel-ai-1\web-vue
 start "前端服务" cmd /k "npm run dev"
 
 :: 启动后端 SpringBoot
-cd /d C:\Users\P\travel-ai\web-springboot
+cd /d C:\Users\20201\Desktop\travel-ai-1\web-springboot
 start "后端服务" cmd /k "mvn spring-boot:run"
 
 :: 启动算法 Flask
-cd /d C:\Users\P\travel-ai\web-flask
+cd /d C:\Users\20201\Desktop\travel-ai-1\web-flask
 start "算法服务" cmd /k "conda activate py12 && python app.py"
 
 :: 启动文件服务
-cd /d C:\Users\P\travel-ai\web-file
+cd /d C:\Users\20201\Desktop\travel-ai-1\web-file
 start "文件服务" cmd /k "web-file-service.exe"
 
 :: 启动 Neo4j

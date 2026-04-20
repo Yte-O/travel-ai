@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { UserInfo, LoginResponse } from '@/types/user'
 import { login as userLogin, logout as userLogout, updatePassword as updateUserPassword, register as userRegister } from '@/api/user'
+import { algoRequest } from '@/api/algo_request'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
@@ -41,6 +42,18 @@ export const useUserStore = defineStore('user', () => {
         token: res.token
       }))
       ElMessage.success('登录成功')
+      
+      // 如果是管理员，自动同步数据到图数据库
+      if (res.userInfo.role === 1) {
+        try {
+          await algoRequest.post('/knowledge-graph/sync')
+          console.log('数据同步完成')
+        } catch (error) {
+          console.error('自动同步失败:', error)
+          // 不影响登录流程，只记录错误
+        }
+      }
+      
       // 根据角色跳转到不同页面
       if (res.userInfo.role === 1) {
         router.push('/admin')

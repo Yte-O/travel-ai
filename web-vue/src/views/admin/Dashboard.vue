@@ -24,73 +24,103 @@
 
     <!-- 数据概览卡片 -->
     <div class="overview-cards">
-      <el-card class="overview-card" v-loading="overviewLoading">
-        <div class="card-content">
-          <div class="card-icon user-icon">
-            <svg viewBox="0 0 1024 1024">
-              <path d="M512 74.666667C270.933333 74.666667 74.666667 270.933333 74.666667 512S270.933333 949.333333 512 949.333333 949.333333 753.066667 949.333333 512 753.066667 74.666667 512 74.666667zM512 245.333333c83.2 0 149.333333 66.133333 149.333333 149.333333S595.2 544 512 544s-149.333333-66.133333-149.333333-149.333333S428.8 245.333333 512 245.333333z m0 618.666667c-110.933333 0-209.066667-53.333333-268.8-138.666667 2.133333-89.6 179.2-138.666667 268.8-138.666666s266.666667 49.066667 268.8 138.666666C721.066667 810.666667 622.933333 864 512 864z"/>
-            </svg>
+      <!-- 用户板块 -->
+      <el-card class="overview-card merged-card" v-loading="overviewLoading">
+        <div class="card-header">
+          <h3>用户</h3>
+          <span class="growth-header">较上月增长</span>
+        </div>
+        <div class="merged-content">
+          <div class="metric-item">
+            <div class="card-content">
+              <div class="card-icon user-icon">
+                <svg viewBox="0 0 1024 1024">
+                  <path d="M512 74.666667C270.933333 74.666667 74.666667 270.933333 74.666667 512S270.933333 949.333333 512 949.333333 949.333333 753.066667 949.333333 512 753.066667 74.666667 512 74.666667zM512 245.333333c83.2 0 149.333333 66.133333 149.333333 149.333333S595.2 544 512 544s-149.333333-66.133333-149.333333-149.333333S428.8 245.333333 512 245.333333z m0 618.666667c-110.933333 0-209.066667-53.333333-268.8-138.666667 2.133333-89.6 179.2-138.666667 268.8-138.666666s266.666667 49.066667 268.8 138.666666C721.066667 810.666667 622.933333 864 512 864z"/>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>总用户数</h3>
+                <p class="number">{{ overviewData.totalUsers }}</p>
+              </div>
+            </div>
+            <div class="metric-growth" :class="{ 'positive': getGrowthPercent('totalUsers') >= 0, 'negative': getGrowthPercent('totalUsers') < 0 }">
+              {{ getGrowthPercent('totalUsers') >= 0 ? '+' : '' }}{{ getGrowthPercent('totalUsers').toFixed(1) }}%
+            </div>
           </div>
-          <div class="card-info">
-            <h3>总用户数</h3>
-            <p class="number">{{ overviewData.totalUsers }}</p>
+          <div class="metric-item">
+            <div class="card-content">
+              <div class="card-icon action-icon">
+                <svg viewBox="0 0 1024 1024">
+                  <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z m5.4-528.9L457.9 408c-5.1 5.1-13.8 1.5-13.8-5.7V294.8c0-8.8 7.2-16 16-16s16 7.2 16 16v64.9l31.1-33.8c6.2-6.8 16.8-6.8 23 0 6.2 6.8 6.2 17.8 0 24.6L517.4 365.1z m-62.2 186.1c-2.1-2.1-2.1-5.5 0-7.6l60.6-60.6c2.1-2.1 5.5-2.1 7.6 0l60.6 60.6c2.1 2.1 2.1 5.5 0 7.6l-60.6 60.6c-2.1 2.1-5.5 2.1-7.6 0l-60.6-60.6z"/>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>总行为数</h3>
+                <p class="number">{{ overviewData.totalActions }}</p>
+              </div>
+            </div>
+            <div class="metric-growth" :class="{ 'positive': getGrowthPercent('totalActions') >= 0, 'negative': getGrowthPercent('totalActions') < 0 }">
+              {{ getGrowthPercent('totalActions') >= 0 ? '+' : '' }}{{ getGrowthPercent('totalActions').toFixed(1) }}%
+            </div>
           </div>
         </div>
       </el-card>
 
-      <el-card class="overview-card" v-loading="overviewLoading">
-        <div class="card-content">
-          <div class="card-icon item-icon">
-            <svg viewBox="0 0 1024 1024">
-              <path d="M832 384H576V128H192v832h640V384z m-128 64v384H256V192h256v256h192z"/>
-            </svg>
-          </div>
-          <div class="card-info">
-            <h3>景点总数</h3>
-            <p class="number">{{ overviewData.totalItems }}</p>
-          </div>
+      <!-- 景点板块 -->
+      <el-card class="overview-card merged-card" v-loading="overviewLoading">
+        <div class="card-header">
+          <h3>景点</h3>
+          <span class="growth-header">较上月增长</span>
         </div>
-      </el-card>
-
-      <el-card class="overview-card" v-loading="overviewLoading">
-        <div class="card-content">
-          <div class="card-icon category-icon">
-            <svg viewBox="0 0 1024 1024">
-              <path d="M544 416h416v416H544V416z m64 64v288h288V480H608zM64 64h416v416H64V64z m64 64v288h288V128H128zM64 544h416v416H64V544z m64 64v288h288V608H128z"/>
-            </svg>
+        <div class="merged-content">
+          <div class="metric-item">
+            <div class="card-content">
+              <div class="card-icon item-icon">
+                <svg viewBox="0 0 1024 1024">
+                  <path d="M832 384H576V128H192v832h640V384z m-128 64v384H256V192h256v256h192z"/>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>景点总数</h3>
+                <p class="number">{{ overviewData.totalItems }}</p>
+              </div>
+            </div>
+            <div class="metric-growth" :class="{ 'positive': getGrowthPercent('totalItems') >= 0, 'negative': getGrowthPercent('totalItems') < 0 }">
+              {{ getGrowthPercent('totalItems') >= 0 ? '+' : '' }}{{ getGrowthPercent('totalItems').toFixed(1) }}%
+            </div>
           </div>
-          <div class="card-info">
-            <h3>景点类别</h3>
-            <p class="number">{{ overviewData.totalCategories }}</p>
+          <div class="metric-item">
+            <div class="card-content">
+              <div class="card-icon category-icon">
+                <svg viewBox="0 0 1024 1024">
+                  <path d="M544 416h416v416H544V416z m64 64v288h288V480H608zM64 64h416v416H64V64z m64 64v288h288V128H128zM64 544h416v416H64V544z m64 64v288h288V608H128z"/>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>景点类别</h3>
+                <p class="number">{{ overviewData.totalCategories }}</p>
+              </div>
+            </div>
+            <div class="metric-growth" :class="{ 'positive': getGrowthPercent('totalCategories') >= 0, 'negative': getGrowthPercent('totalCategories') < 0 }">
+              {{ getGrowthPercent('totalCategories') >= 0 ? '+' : '' }}{{ getGrowthPercent('totalCategories').toFixed(1) }}%
+            </div>
           </div>
-        </div>
-      </el-card>
-
-      <el-card class="overview-card" v-loading="overviewLoading">
-        <div class="card-content">
-          <div class="card-icon action-icon">
-            <svg viewBox="0 0 1024 1024">
-              <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z m5.4-528.9L457.9 408c-5.1 5.1-13.8 1.5-13.8-5.7V294.8c0-8.8 7.2-16 16-16s16 7.2 16 16v64.9l31.1-33.8c6.2-6.8 16.8-6.8 23 0 6.2 6.8 6.2 17.8 0 24.6L517.4 365.1z m-62.2 186.1c-2.1-2.1-2.1-5.5 0-7.6l60.6-60.6c2.1-2.1 5.5-2.1 7.6 0l60.6 60.6c2.1 2.1 2.1 5.5 0 7.6l-60.6 60.6c-2.1 2.1-5.5 2.1-7.6 0l-60.6-60.6z"/>
-            </svg>
-          </div>
-          <div class="card-info">
-            <h3>总行为数</h3>
-            <p class="number">{{ overviewData.totalActions }}</p>
-          </div>
-        </div>
-      </el-card>
-
-      <el-card class="overview-card" v-loading="overviewLoading">
-        <div class="card-content">
-          <div class="card-icon tag-icon">
-            <svg viewBox="0 0 1024 1024">
-              <path d="M483.2 790.3L861.4 412c1.7-1.7 2.5-4 2.3-6.3l-25.5-301.4c-.7-7.8-6.1-14.9-13.9-18.1l-34.4-14.6c-9.2-3.9-19.8-1.1-26.3 7.3L565.2 302.1c-5.4 7-5.2 16.9 0.3 23.8l73.2 95.2c3.3 4.3 7.7 7.6 12.6 9.8l59.7 26.8c8.4 3.8 11.8 13.8 8 22.2-2.6 5.8-8.1 9.5-14.5 9.8L569.2 497c-10.9 0.5-21.4 5.6-28.9 14.1l-106.3 120.3c-5.3 6-8.2 13.6-8.2 21.5v150.9c0 4.3 3.5 7.8 7.8 7.8h14.1c4.3 0 7.8-3.5 7.8-7.8V673.3c0-2.9 1.1-5.6 3.1-7.6z"/>
-              <path d="M191.8 420.9c-19.9 0-36.1 16.2-36.1 36.1 0 19.9 16.2 36.1 36.1 36.1s36.1-16.2 36.1-36.1c0-19.9-16.2-36.1-36.1-36.1z"/>
-            </svg>
-          </div>
-          <div class="card-info">
-            <h3>标签总数</h3>
-            <p class="number">{{ overviewData.totalTags }}</p>
+          <div class="metric-item">
+            <div class="card-content">
+              <div class="card-icon tag-icon">
+                <svg viewBox="0 0 1024 1024">
+                  <path d="M483.2 790.3L861.4 412c1.7-1.7 2.5-4 2.3-6.3l-25.5-301.4c-.7-7.8-6.1-14.9-13.9-18.1l-34.4-14.6c-9.2-3.9-19.8-1.1-26.3 7.3L565.2 302.1c-5.4 7-5.2 16.9 0.3 23.8l73.2 95.2c3.3 4.3 7.7 7.6 12.6 9.8l59.7 26.8c8.4 3.8 11.8 13.8 8 22.2-2.6 5.8-8.1 9.5-14.5 9.8L569.2 497c-10.9 0.5-21.4 5.6-28.9 14.1l-106.3 120.3c-5.3 6-8.2 13.6-8.2 21.5v150.9c0 4.3 3.5 7.8 7.8 7.8h14.1c4.3 0 7.8-3.5 7.8-7.8V673.3c0-2.9 1.1-5.6 3.1-7.6z"/>
+                  <path d="M191.8 420.9c-19.9 0-36.1 16.2-36.1 36.1 0 19.9 16.2 36.1 36.1 36.1s36.1-16.2 36.1-36.1c0-19.9-16.2-36.1-36.1-36.1z"/>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>标签总数</h3>
+                <p class="number">{{ overviewData.totalTags }}</p>
+              </div>
+            </div>
+            <div class="metric-growth" :class="{ 'positive': getGrowthPercent('totalTags') >= 0, 'negative': getGrowthPercent('totalTags') < 0 }">
+              {{ getGrowthPercent('totalTags') >= 0 ? '+' : '' }}{{ getGrowthPercent('totalTags').toFixed(1) }}%
+            </div>
           </div>
         </div>
       </el-card>
@@ -175,29 +205,38 @@
         <template #header>
           <div class="card-header">
             <h3>热门景点TOP10</h3>
-            <el-button-group>
-              <el-button 
-                :type="hotItemsType === 'view' ? 'primary' : 'default'"
-                size="small"
-                @click="changeHotItemsType('view')"
-              >
-                浏览量
-              </el-button>
-              <el-button 
-                :type="hotItemsType === 'purchase' ? 'primary' : 'default'"
-                size="small"
-                @click="changeHotItemsType('purchase')"
-              >
-预约量
-              </el-button>
-              <el-button 
-                :type="hotItemsType === 'favorite' ? 'primary' : 'default'"
-                size="small"
-                @click="changeHotItemsType('favorite')"
-              >
-                收藏量
-              </el-button>
-            </el-button-group>
+            <div class="chart-controls">
+              <el-button-group>
+                <el-button 
+                  :type="hotItemsType === 'summary' ? 'primary' : 'default'"
+                  size="small"
+                  @click="changeHotItemsType('summary')"
+                >
+                  汇总
+                </el-button>
+                <el-button 
+                  :type="hotItemsType === 'view' ? 'primary' : 'default'"
+                  size="small"
+                  @click="changeHotItemsType('view')"
+                >
+                  浏览量
+                </el-button>
+                <el-button 
+                  :type="hotItemsType === 'purchase' ? 'primary' : 'default'"
+                  size="small"
+                  @click="changeHotItemsType('purchase')"
+                >
+                  预约量
+                </el-button>
+                <el-button 
+                  :type="hotItemsType === 'favorite' ? 'primary' : 'default'"
+                  size="small"
+                  @click="changeHotItemsType('favorite')"
+                >
+                  收藏量
+                </el-button>
+              </el-button-group>
+            </div>
           </div>
         </template>
         <div 
@@ -254,7 +293,7 @@ const hotItemsLoading = ref(false)
 
 // 控制参数
 const actionTrendPeriod = ref('7')
-const hotItemsType = ref('view')
+const hotItemsType = ref('summary')
 const useRealData = ref(false) // 默认使用模拟数据，避免初期数据过少影响展示效果
 
 // 获取数据概览
@@ -277,7 +316,13 @@ const fetchOverviewData = async () => {
         totalItems: itemsRes.total || 0,
         totalCategories: categoriesRes.total || 0,
         totalActions: actionsRes.total || 0,
-        totalTags: kgStatsRes.nodes?.Tag || 0
+        totalTags: kgStatsRes.nodes?.Tag || 0,
+        // 模拟上个月数据（实际项目中应从历史数据获取）
+        lastMonthUsers: Math.floor((usersRes.total || 0) * (0.8 + Math.random() * 0.4)),
+        lastMonthItems: Math.floor((itemsRes.total || 0) * (0.8 + Math.random() * 0.4)),
+        lastMonthCategories: Math.floor((categoriesRes.total || 0) * (0.8 + Math.random() * 0.4)),
+        lastMonthActions: Math.floor((actionsRes.total || 0) * (0.8 + Math.random() * 0.4)),
+        lastMonthTags: Math.floor((kgStatsRes.nodes?.Tag || 0) * (0.8 + Math.random() * 0.4))
       }
     } else {
       // 使用模拟数据
@@ -286,7 +331,12 @@ const fetchOverviewData = async () => {
         totalItems: 486,
         totalCategories: 12,
         totalActions: 8640,
-        totalTags: 248
+        totalTags: 248,
+        lastMonthUsers: 1180,
+        lastMonthItems: 452,
+        lastMonthCategories: 11,
+        lastMonthActions: 8120,
+        lastMonthTags: 235
       }
     }
   } catch (error) {
@@ -364,6 +414,19 @@ const initActionTrendChart = async () => {
       }
     }
     
+    // 计算增长数据
+    const viewGrowth: number[] = []
+    const purchaseGrowth: number[] = []
+    for (let i = 0; i < viewData.length; i++) {
+      if (i === 0) {
+        viewGrowth.push(0)
+        purchaseGrowth.push(0)
+      } else {
+        viewGrowth.push(viewData[i] - viewData[i - 1])
+        purchaseGrowth.push(purchaseData[i] - purchaseData[i - 1])
+      }
+    }
+    
     if (!actionTrendChartInstance) {
       actionTrendChartInstance = echarts.init(actionTrendChart.value)
     }
@@ -379,12 +442,24 @@ const initActionTrendChart = async () => {
       },
       tooltip: {
         trigger: 'axis',
-        axisPointer: {
-          type: 'cross'
+        formatter: function (params: any) {
+          let result = params[0].name + '<br/>'
+          params.forEach((item: any) => {
+            if (item.seriesName.includes('增长')) {
+              const growth = item.value
+              const prevIndex = params[0].dataIndex - 1
+              const prevValue = prevIndex >= 0 ? (item.seriesName === '浏览增长' ? viewData[prevIndex] : purchaseData[prevIndex]) : 0
+              const growthPercent = prevValue !== 0 ? ((growth / prevValue) * 100).toFixed(1) : '0.0'
+              result += `${item.marker} ${item.seriesName}: ${growth} (${growthPercent}%)<br/>`
+            } else {
+              result += `${item.marker} ${item.seriesName}: ${item.value}<br/>`
+            }
+          })
+          return result
         }
       },
       legend: {
-        data: ['浏览量', '预约量'],
+        data: ['浏览量', '预约量', '浏览增长', '预约增长'],
         top: 30
       },
       grid: {
@@ -406,7 +481,6 @@ const initActionTrendChart = async () => {
         {
           name: '浏览量',
           type: 'line',
-          stack: 'Total',
           smooth: true,
           data: viewData,
           areaStyle: {
@@ -419,7 +493,6 @@ const initActionTrendChart = async () => {
         {
           name: '预约量',
           type: 'line',
-          stack: 'Total',
           smooth: true,
           data: purchaseData,
           areaStyle: {
@@ -427,6 +500,24 @@ const initActionTrendChart = async () => {
           },
           itemStyle: {
             color: '#67C23A'
+          }
+        },
+        {
+          name: '浏览增长',
+          type: 'bar',
+          data: viewGrowth,
+          barWidth: '20%',
+          itemStyle: {
+            color: '#409EFF' // 固定为浏览量主色
+          }
+        },
+        {
+          name: '预约增长',
+          type: 'bar',
+          data: purchaseGrowth,
+          barWidth: '20%',
+          itemStyle: {
+            color: '#67C23A' // 固定为预约量主色
           }
         }
       ]
@@ -506,31 +597,43 @@ const initCategoryDistributionChart = async () => {
         formatter: '{a} <br/>{b}: {c} ({d}%)'
       },
       legend: {
-        orient: 'vertical',
-        left: 'left',
-        top: 'middle'
+        orient: 'horizontal',
+        bottom: '5%',
+        left: 'center'
       },
       color: generateColors(data.length), // 动态生成颜色，确保颜色数量与数据量匹配
       series: [
         {
           name: '景点数量',
           type: 'pie',
-          radius: ['40%', '70%'],
-          center: ['60%', '50%'],
+          radius: '50%',
+          center: ['50%', '45%'],
           avoidLabelOverlap: false,
           label: {
-            show: false,
-            position: 'center'
+            show: true,
+            position: 'outside',
+            formatter: '{b}: {d}%'
           },
           emphasis: {
             label: {
               show: true,
-              fontSize: '20',
+              fontSize: '18',
               fontWeight: 'bold'
+            },
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
             }
           },
           labelLine: {
-            show: false
+            show: true
+          },
+          itemStyle: {
+            borderWidth: 2,
+            borderColor: '#fff',
+            shadowBlur: 5,
+            shadowColor: 'rgba(0, 0, 0, 0.3)'
           },
           data: data
         }
@@ -619,47 +722,37 @@ const initUserActivityChart = async () => {
         }
       },
       tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        }
+        trigger: 'item',
+        formatter: '{a} <br/>{b}: {c} ({d}%)'
       },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        top: '60px',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: activityData.map(item => item.name)
-      },
-      yAxis: {
-        type: 'value'
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle'
       },
       color: generateColors(activityData.length), // 动态生成颜色
       series: [
         {
           name: '用户数量',
-          type: 'bar',
-          data: activityData.map(item => item.value),
-          itemStyle: {
-            color: function(params: any) {
-              const colors = generateColors(activityData.length)
-              return colors[params.dataIndex] || colors[0]
-            }
+          type: 'pie',
+          radius: ['40%', '70%'], // 环形图
+          center: ['60%', '50%'],
+          avoidLabelOverlap: false,
+          label: {
+            show: false,
+            position: 'center'
           },
           emphasis: {
-            itemStyle: {
-              color: function(params: any) {
-                const colors = generateColors(activityData.length)
-                // 生成稍微深一点的颜色作为强调色
-                const baseColor = colors[params.dataIndex] || colors[0]
-                return adjustColorBrightness(baseColor, -20)
-              }
+            label: {
+              show: true,
+              fontSize: '20',
+              fontWeight: 'bold'
             }
-          }
+          },
+          labelLine: {
+            show: false
+          },
+          data: activityData
         }
       ]
     }
@@ -723,6 +816,14 @@ const initActionTypeChart = async () => {
       ]
     }
     
+    // 调整数据，确保最小值不小于最大值的1/3，以保证最小半径不小于最大半径的1/3
+    const maxValue = Math.max(...actionData.map(d => d.value))
+    const minValueThreshold = maxValue / 3
+    actionData = actionData.map(d => ({
+      ...d,
+      value: Math.max(d.value, minValueThreshold)
+    }))
+    
     if (!actionTypeChartInstance) {
       actionTypeChartInstance = echarts.init(actionTypeChart.value)
     }
@@ -740,13 +841,19 @@ const initActionTypeChart = async () => {
         trigger: 'item',
         formatter: '{a} <br/>{b}: {c} ({d}%)'
       },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        top: 'middle'
+      },
       color: generateColors(actionData.length), // 动态生成颜色
       series: [
         {
           name: '行为数量',
           type: 'pie',
-          radius: '70%',
-          center: ['50%', '50%'],
+          radius: '60%',
+          center: ['60%', '50%'],
+          roseType: 'radius', // 南丁格尔玫瑰图效果，半径正比于值
           data: actionData,
           itemStyle: {
             emphasis: {
@@ -756,7 +863,10 @@ const initActionTypeChart = async () => {
             }
           },
           label: {
-            formatter: '{b}\n{c}\n({d}%)'
+            show: false
+          },
+          labelLine: {
+            show: false
           }
         }
       ]
@@ -777,7 +887,7 @@ const initHotItemsChart = async () => {
   try {
     hotItemsLoading.value = true
     
-    let itemData: Array<{ name: string; value: number }> = []
+    let itemStats: Array<{ name: string; view: number; purchase: number; favorite: number }> = []
     
     if (useRealData.value) {
       // 获取真实的景点和行为数据
@@ -790,11 +900,11 @@ const initHotItemsChart = async () => {
       const actions = actionsRes.records || []
       
       // 统计每个景点的不同类型数据
-      const itemStats = new Map<number, { view: number; purchase: number; favorite: number; name: string }>()
+      const statsMap = new Map<number, { view: number; purchase: number; favorite: number; name: string }>()
       
       // 初始化景点统计
       items.forEach((item: any) => {
-        itemStats.set(item.id, {
+        statsMap.set(item.id, {
           view: 0,
           purchase: 0,
           favorite: 0,
@@ -804,8 +914,8 @@ const initHotItemsChart = async () => {
       
       // 统计行为数据
       actions.forEach((action: any) => {
-        if (action.itemId && itemStats.has(action.itemId)) {
-          const stats = itemStats.get(action.itemId)!
+        if (action.itemId && statsMap.has(action.itemId)) {
+          const stats = statsMap.get(action.itemId)!
           if (action.actionType === 0) { // 浏览
             stats.view++
           } else if (action.actionType === 1) { // 预约
@@ -815,7 +925,7 @@ const initHotItemsChart = async () => {
       })
       
       // 尝试获取真实的景点收藏数据
-      for (const [itemId, stats] of itemStats.entries()) {
+      for (const [itemId, stats] of statsMap.entries()) {
         try {
           const favoriteCount = await favoriteApi.getItemFavoriteCount(itemId)
           stats.favorite = favoriteCount
@@ -825,18 +935,10 @@ const initHotItemsChart = async () => {
         }
       }
       
-      // 根据选择的类型排序并取前10
-      const sortedItems = Array.from(itemStats.entries())
-        .map(([id, stats]) => ({
-          name: stats.name,
-          value: hotItemsType.value === 'view' ? stats.view : 
-                 hotItemsType.value === 'purchase' ? stats.purchase : 
-                 stats.favorite
-        }))
-        .sort((a, b) => b.value - a.value)
+      // 根据浏览量排序并取前10
+      itemStats = Array.from(statsMap.values())
+        .sort((a, b) => b.view - a.view)
         .slice(0, 10)
-      
-      itemData = sortedItems
     } else {
       // 使用模拟数据
       const mockItemNames = [
@@ -845,70 +947,130 @@ const initHotItemsChart = async () => {
         '西湖风景区', '故宫博物院', '长城', '兵马俑'
       ]
       
-      itemData = mockItemNames.map((name, index) => {
-        let baseValue = 0
-        if (hotItemsType.value === 'view') {
-          baseValue = 450 - index * 35 + Math.random() * 20
-        } else if (hotItemsType.value === 'purchase') {
-          baseValue = 89 - index * 7 + Math.random() * 5
-        } else {
-          baseValue = 156 - index * 12 + Math.random() * 8
-        }
-        
-        return {
-          name: name,
-          value: Math.floor(baseValue)
-        }
-      })
+      itemStats = mockItemNames.map((name, index) => ({
+        name,
+        view: 450 - index * 35,
+        purchase: 89 - index * 7,
+        favorite: 156 - index * 12
+      }))
     }
     
     if (!hotItemsChartInstance) {
       hotItemsChartInstance = echarts.init(hotItemsChart.value)
     }
     
-    const option = {
-      title: {
-        text: `热门景点TOP10 - ${hotItemsType.value === 'view' ? '浏览量' : hotItemsType.value === 'purchase' ? '预约量' : '收藏量'}`,
-        left: 'center',
-        textStyle: {
-          fontSize: 16,
-          fontWeight: 'normal'
-        }
-      },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        }
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        top: '60px',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'value',
-        boundaryGap: [0, 0.01]
-      },
-      yAxis: {
-        type: 'category',
-        data: itemData.map(item => item.name)
-      },
-      series: [
-        {
-          name: hotItemsType.value === 'view' ? '浏览量' : hotItemsType.value === 'purchase' ? '预约量' : '收藏量',
-          type: 'bar',
-          data: itemData.map(item => item.value),
-          itemStyle: {
-            color: hotItemsType.value === 'view' ? '#409EFF' : hotItemsType.value === 'purchase' ? '#67C23A' : '#E6A23C'
+    let option: any
+    
+    if (hotItemsType.value === 'summary') {
+      // 分组柱状图
+      option = {
+        title: {
+          text: '热门景点TOP10 - 数据汇总',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            fontWeight: 'normal'
           }
-        }
-      ]
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        legend: {
+          data: ['浏览量', '预约量', '收藏量'],
+          top: '30px'
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          top: '80px',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: itemStats.map(item => item.name),
+          axisLabel: {
+            rotate: 45
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: '浏览量',
+            type: 'bar',
+            data: itemStats.map(item => item.view),
+            itemStyle: { color: '#409EFF' }
+          },
+          {
+            name: '预约量',
+            type: 'bar',
+            data: itemStats.map(item => item.purchase),
+            itemStyle: { color: '#67C23A' }
+          },
+          {
+            name: '收藏量',
+            type: 'bar',
+            data: itemStats.map(item => item.favorite),
+            itemStyle: { color: '#E6A23C' }
+          }
+        ]
+      }
+    } else {
+      // 单个指标的竖向柱状图
+      const typeName = hotItemsType.value === 'view' ? '浏览量' : hotItemsType.value === 'purchase' ? '预约量' : '收藏量'
+      const dataKey = hotItemsType.value as keyof typeof itemStats[0]
+      
+      option = {
+        title: {
+          text: `热门景点TOP10 - ${typeName}`,
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            fontWeight: 'normal'
+          }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          top: '60px',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: itemStats.map(item => item.name),
+          axisLabel: {
+            rotate: 45
+          }
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: typeName,
+            type: 'bar',
+            data: itemStats.map(item => item[dataKey] as number),
+            itemStyle: {
+              color: hotItemsType.value === 'view' ? '#409EFF' : hotItemsType.value === 'purchase' ? '#67C23A' : '#E6A23C'
+            }
+          }
+        ]
+      }
     }
     
-    hotItemsChartInstance.setOption(option)
+    hotItemsChartInstance.setOption(option, true)
   } catch (error) {
     console.error('初始化热门景点图失败:', error)
   } finally {
@@ -1010,10 +1172,21 @@ const changeActionTrendPeriod = (period: string) => {
   initActionTrendChart()
 }
 
+// 计算同比增长百分比
+const getGrowthPercent = (key: string) => {
+  const current = overviewData.value[key as keyof typeof overviewData.value] as number
+  const lastMonthKey = `lastMonth${key.charAt(0).toUpperCase()}${key.slice(1)}`
+  const lastMonth = overviewData.value[lastMonthKey as keyof typeof overviewData.value] as number
+  if (lastMonth === 0) return 0
+  return ((current - lastMonth) / lastMonth) * 100
+}
+
 // 改变热门景点类型
 const changeHotItemsType = (type: string) => {
   hotItemsType.value = type
-  initHotItemsChart()
+  nextTick(() => {
+    initHotItemsChart()
+  })
 }
 
 // 切换数据模式
@@ -1124,7 +1297,7 @@ onUnmounted(() => {
 
 .overview-cards {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 32px;
 }
@@ -1140,13 +1313,51 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.card-content {
+.merged-card .card-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 16px 20px 0;
+  margin-bottom: 16px;
 }
 
-.card-icon {
+.merged-card .card-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.growth-header {
+  font-size: 14px;
+  color: #909399;
+  font-weight: 500;
+}
+
+.merged-content {
+  padding: 0 20px 20px;
+}
+
+.metric-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  min-height: 80px; /* 确保高度一致 */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metric-item:last-child {
+  border-bottom: none;
+}
+
+.metric-item .card-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.metric-item .card-icon {
   width: 60px;
   height: 60px;
   border-radius: 12px;
@@ -1156,44 +1367,43 @@ onUnmounted(() => {
   margin-right: 20px;
 }
 
-.card-icon svg {
+.metric-item .card-icon svg {
   width: 32px;
   height: 32px;
   fill: white;
 }
 
-.user-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.item-icon {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.category-icon {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.action-icon {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.tag-icon {
-  background: linear-gradient(135deg, #fac858 0%, #ff6b6b 100%);
-}
-
-.card-info h3 {
+.metric-item .card-info h3 {
   color: #606266;
   font-size: 14px;
   font-weight: 500;
   margin: 0 0 8px 0;
 }
 
-.card-info .number {
+.metric-item .card-info .number {
   color: #303133;
   font-size: 28px;
   font-weight: 700;
   margin: 0;
+}
+
+.metric-growth {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.metric-growth.positive {
+  color: #67C23A;
+  background-color: #f0f9ff;
+}
+
+.metric-growth.negative {
+  color: #F56C6C;
+  background-color: #fef0f0;
 }
 
 .charts-container {
@@ -1226,6 +1436,11 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
 }
 
 .chart-container {

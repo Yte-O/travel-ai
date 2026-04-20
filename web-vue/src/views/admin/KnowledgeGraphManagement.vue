@@ -64,23 +64,39 @@
       </div>
       
       <div v-else-if="statistics" class="statistics-content">
-        <el-row :gutter="20">
-          <el-col :span="8" v-for="(value, key) in statistics.nodes" :key="key">
-            <div class="statistic-box">
-              <h3>{{ getNodeTypeName(key) }}</h3>
-              <div class="statistic-value">{{ value }}</div>
+        <!-- 节点板块 -->
+        <div class="stats-section">
+          <h2 class="section-title">节点</h2>
+          <div class="stats-grid">
+            <div v-if="statistics.nodes.Category" class="statistic-circle">
+              <h3>{{ getNodeTypeName('Category') }}</h3>
+              <div class="statistic-value">{{ statistics.nodes.Category }}</div>
               <div class="statistic-label">节点数</div>
             </div>
-          </el-col>
-          
-          <el-col :span="8" v-for="(value, key) in statistics.relationships" :key="'rel-'+key">
-            <div class="statistic-box relationship">
+            <div v-if="statistics.nodes.Item" class="statistic-circle">
+              <h3>{{ getNodeTypeName('Item') }}</h3>
+              <div class="statistic-value">{{ statistics.nodes.Item }}</div>
+              <div class="statistic-label">节点数</div>
+            </div>
+            <div v-if="statistics.nodes.Tag" class="statistic-circle">
+              <h3>{{ getNodeTypeName('Tag') }}</h3>
+              <div class="statistic-value">{{ statistics.nodes.Tag }}</div>
+              <div class="statistic-label">节点数</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 关系板块 -->
+        <div class="stats-section">
+          <h2 class="section-title">关系</h2>
+          <div class="stats-grid">
+            <div v-for="(value, key) in statistics.relationships" :key="'rel-'+key" class="statistic-circle relationship">
               <h3>{{ getRelationshipName(key) }}</h3>
               <div class="statistic-value">{{ value }}</div>
               <div class="statistic-label">关系数</div>
             </div>
-          </el-col>
-        </el-row>
+          </div>
+        </div>
       </div>
       
       <div v-else class="no-statistics">
@@ -471,6 +487,8 @@ const fetchStatistics = async () => {
     statsLoading.value = true
     const result = await algoRequest.get('/knowledge-graph/stats')
     statistics.value = result
+    // 保存统计数据到localStorage
+    localStorage.setItem('kg-statistics', JSON.stringify(result))
   } catch (error: any) {
     ElMessage.error('获取统计信息失败: ' + (error.message || '请稍后重试'))
     console.error('获取统计信息失败:', error)
@@ -492,6 +510,9 @@ const loadVisualizationData = async () => {
     
     if (result && result.nodes && result.edges) {
       visualizationData.value = result
+      
+      // 保存可视化数据到localStorage
+      localStorage.setItem('kg-visualization', JSON.stringify(result))
       
       // 数据加载完成，准备可视化
       
@@ -1292,8 +1313,41 @@ const handleEscapeKey = (event: KeyboardEvent) => {
 
 // 组件挂载时获取数据
 onMounted(async () => {
-  await fetchStatistics()
-  await loadVisualizationData()
+  // 首先尝试从localStorage恢复数据
+  const savedStats = localStorage.getItem('kg-statistics')
+  const savedVisualization = localStorage.getItem('kg-visualization')
+
+  if (savedStats) {
+    try {
+      statistics.value = JSON.parse(savedStats)
+    } catch (error) {
+      console.error('解析保存的统计数据失败:', error)
+      localStorage.removeItem('kg-statistics')
+    }
+  }
+
+  if (savedVisualization) {
+    try {
+      visualizationData.value = JSON.parse(savedVisualization)
+      // 如果有保存的可视化数据，初始化图表
+      nextTick(() => {
+        setTimeout(() => {
+          initVisualization()
+        }, 200)
+      })
+    } catch (error) {
+      console.error('解析保存的可视化数据失败:', error)
+      localStorage.removeItem('kg-visualization')
+    }
+  }
+
+  // 如果没有保存的数据，则从服务器获取
+  if (!savedStats) {
+    await fetchStatistics()
+  }
+  if (!savedVisualization) {
+    await loadVisualizationData()
+  }
 })
 
 // 监听布局类型变化
@@ -1447,6 +1501,98 @@ onUnmounted(() => {
   padding: 10px 0;
 }
 
+.stats-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.statistic-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #156f5f 0%, #1a8f7a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  margin: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(21, 111, 95, 0.2);
+}
+
+.statistic-circle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.statistic-circle:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(21, 111, 95, 0.3);
+  background: linear-gradient(135deg, #1a8f7a 0%, #2d9f86 100%);
+}
+
+.statistic-circle:hover::before {
+  opacity: 1;
+}
+
+.statistic-circle:active {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.statistic-circle.relationship {
+  background: linear-gradient(135deg, #e66127 0%, #f07238 100%);
+  box-shadow: 0 4px 15px rgba(230, 97, 39, 0.2);
+}
+
+.statistic-circle.relationship:hover {
+  background: linear-gradient(135deg, #f07238 0%, #ff8c4a 100%);
+  box-shadow: 0 12px 30px rgba(230, 97, 39, 0.3);
+}
+
+.statistic-circle h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.statistic-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+}
+
+.statistic-label {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
 .statistic-box {
   background-color: #f8f9fa;
   border-radius: 6px;
@@ -1467,7 +1613,7 @@ onUnmounted(() => {
   margin-bottom: 10px;
 }
 
-.statistic-value {
+.statistic-box .statistic-value {
   color: #409EFF;
   font-size: 24px;
   font-weight: bold;
@@ -1478,7 +1624,7 @@ onUnmounted(() => {
   color: #67c23a;
 }
 
-.statistic-label {
+.statistic-box .statistic-label {
   color: #909399;
   font-size: 12px;
 }
